@@ -13,6 +13,7 @@ float slow, low;
 clock_time avg_send;
 clock_time global_time;
 int num_peers;
+priority_queue<Event*, vector<Event*>, compare_events> event_queue;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
@@ -28,22 +29,20 @@ int main(int argc, char **argv) {
 
     // 2. Create and initialize objects 
     create_topology(num_peers);
-    priority_queue<Event*> pqueue;
     for(int i=0; i<nodes.size(); i++)
-        pqueue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
+        event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
     
     /* Logging the network information */
     log_nodes();
     log_topology();
-    
 
     // 3. While Queue is not empty, do:
     //     3.1. pop first event from the queue
     //     3.2. process the first event
-    while(!pqueue.empty())
+    while(!event_queue.empty())
     {
-        Event *ev = pqueue.top();
-        pqueue.pop();
+        Event *ev = event_queue.top();
+        event_queue.pop();
 
         process_event(ev);
     }

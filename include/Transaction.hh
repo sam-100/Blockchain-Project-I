@@ -2,7 +2,9 @@
 #define TRANSACTION_HH
 
 #include "Declarations.hh"
+#include <ostream>
 
+using namespace std;
 
 struct Transaction
 {
@@ -12,6 +14,7 @@ struct Transaction
     static int cnt;
 
     Transaction(int sender, int receiver, currency amount);
+    friend ostream &operator<<(ostream &out, const Transaction *txn);
 };
 
 #endif
