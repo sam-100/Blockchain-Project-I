@@ -1,0 +1,10 @@
+#ifndef LOG_HH
+#define LOG_HH
+
+#include "Declarations.hh"
+
+void log_topology();
+void log_nodes();
+void log(const char* file, const char* msg);
+
+#endif
