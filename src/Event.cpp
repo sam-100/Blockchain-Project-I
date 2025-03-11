@@ -44,7 +44,7 @@ ostream &operator<<(ostream &os, const TxnRecvEvent *ev) {
     os << "TxnRecvEvent " << "{";
     os << "n_id : " << ev->n_id << ", ";
     os << "timestamp: " << ev->timestamp << ", ";
-    os << "txn : " << ev->txn << " ";
+    os << "txn : " << *ev->txn << " ";
     os << "}";
     return os;
 }
@@ -52,8 +52,8 @@ ostream &operator<<(ostream &os, const TxnRecvEvent *ev) {
 
 void process_event(Event *ev) {
     global_time = ev->timestamp;
-    Node &node = nodes[ev->n_id];
     
+    Node &node = nodes[ev->n_id];
     if(typeid(*ev) == typeid(TxnSendEvent))
     {
         TxnSendEvent *s_ev = (TxnSendEvent*)ev;
@@ -62,15 +62,19 @@ void process_event(Event *ev) {
         /* Create a new Transaction and broadcast it to peer nodes */
         float bal = node.balance[ev->n_id];
         Transaction *txn = new Transaction(ev->n_id, random_int(0, nodes.size()), random_float(0, bal));
-        event_queue.push(new TxnRecvEvent(global_time+10, node.id, txn));
+        forward_txn(ev->n_id, txn);
+
+        /* Adding next send event to the queue.*/
+        event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), ev->n_id));
         return;
     }
     if(typeid(*ev) == typeid(TxnRecvEvent))
     {
         TxnRecvEvent *s_ev = (TxnRecvEvent*)ev;
         cout << s_ev << endl;
-
+        
         /* If txn is new, mark it visited and forward to peer nodes */
+        forward_txn(s_ev->n_id, s_ev->txn);
         return;
     }
     // if(typeid(*ev) == typeid(BlockMinedEvent))

@@ -1,6 +1,7 @@
 #include "Node.hh"
 #include "utils.hh"
-
+#include "Transaction.hh"
+#include "Event.hh"
 #include <iostream>
 
 using namespace std;
@@ -93,3 +94,34 @@ ostream &operator<<(ostream &out, const Node &node) {
     out << "}" << endl;
     return out;
 }
+
+void forward_txn(int n_id, Transaction *txn) {
+    Node &node = nodes[n_id];
+    if(node.visited_txns.find(txn->id) != node.visited_txns.end())
+        return;
+
+    /* validate the transaction and mark as visited */
+    if(node.balance[txn->sender] < txn->amount)
+        return;
+    node.balance[txn->sender] -= txn->amount;
+    node.balance[txn->receiver] += txn->amount;
+    node.visited_txns.insert(txn->id);
+    node.mem_pool.push_back(txn);
+
+    for(int peer : node.peers)
+        event_queue.push(new TxnRecvEvent(global_time + 10, peer, txn));
+    return;    
+}
+
+// 1. update and validate mem-pool
+// 2. re-evaluate balance vector
+
+/*
+1. 45
+2. 54
+3. 23 
+4. 17
+
+23, 54
+
+*/

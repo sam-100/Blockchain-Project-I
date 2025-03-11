@@ -1,5 +1,6 @@
 #include "utils.hh"
 #include <random>
+#include <string.h>
 
 using namespace std;
 
@@ -20,4 +21,3 @@ float random_exp_float(float mean) {
     exponential_distribution<float> dist(1.0/mean);
     return dist(gen);
 }
-

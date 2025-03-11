@@ -33,20 +33,23 @@ int main(int argc, char **argv) {
         event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
     
     /* Logging the network information */
-    log_nodes();
-    log_topology();
-
+    
     // 3. While Queue is not empty, do:
     //     3.1. pop first event from the queue
     //     3.2. process the first event
-    while(!event_queue.empty())
+    while(!event_queue.empty() && global_time < 1000)
     {
         Event *ev = event_queue.top();
         event_queue.pop();
-
+        
         process_event(ev);
+        cout << "global time = " << global_time << endl;
     }
-
+    
+    // 4. Log the result here.
+    log_nodes();
+    log_topology();
+    log_mempools();
 
     return 0;
 }

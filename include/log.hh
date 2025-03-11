@@ -5,6 +5,7 @@
 
 void log_topology();
 void log_nodes();
+void log_mempools();
 void log(const char* file, const char* msg);
 
 #endif

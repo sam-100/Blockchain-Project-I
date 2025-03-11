@@ -22,6 +22,8 @@ struct Node
     bool slow;
     std::unordered_set<int> peers;
     std::vector<currency> balance;
+    std::unordered_set<int> visited_txns;
+    std::vector<Transaction*> mem_pool;
     static int cnt;
 
     Node(bool low, bool slow);
@@ -35,5 +37,6 @@ void print_network();
 void connect_nodes(int node_this, int node_that);
 void visit_dfs(int curr, vector<bool> &visited);
 void print_edges();
+void forward_txn(int n_id, Transaction *txn);
 
 #endif

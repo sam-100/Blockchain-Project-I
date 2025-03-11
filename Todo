@@ -1,0 +1,4 @@
+1. Txn broadcasting.
+2. Txn validating and mem-pool.
+3. Adding Block creation, sending, receiving.
+4. Adding Blockchain.
