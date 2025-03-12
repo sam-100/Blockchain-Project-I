@@ -1,6 +1,7 @@
 #include "Block.hh"
 #include "Transaction.hh"
 #include "Node.hh"
+#include "utils.hh"
 #include <iostream>
 
 int Block::cnt = 0;
@@ -12,7 +13,7 @@ Block::Block(Block* prev, int n_id) {
     {
         height = 0;
         prev_blk = nullptr;
-        balance = vector<currency>(nodes->size(), 100);
+        balance = vector<currency>(num_peers, 100);
         timestamp = global_time;
         return;
     }
@@ -21,6 +22,7 @@ Block::Block(Block* prev, int n_id) {
     prev_blk = prev;
     balance = prev->balance;
     txn_list.push_back(new Transaction(-1, n_id, 25));          // coinbase txn
+    cout << "Balance : " << balance << endl;
     balance[n_id] += 25;
     timestamp = global_time;
 }

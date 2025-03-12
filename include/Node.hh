@@ -34,6 +34,11 @@ struct Node
     bool visited(Transaction *txn) const;
     bool is_valid(Transaction *txn) const;
     void forward(Transaction *txn) const;
+    void reset_mempool();
+
+    Block *create_block();
+    void add_block(Block *blk);
+    void forward(Block *blk) const;
 
     friend ostream &operator<<(ostream &out, const Node &node);
 };

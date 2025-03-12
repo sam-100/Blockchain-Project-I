@@ -4,6 +4,8 @@
 #include <vector>
 #include <queue>
 
+#define BLOCK_SIZE 100
+
 using namespace std;
 
 typedef double clock_time;

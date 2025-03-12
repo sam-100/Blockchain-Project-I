@@ -148,12 +148,27 @@ void mine_block(int n_id, Block *prev) {
         return;
     }
 
-    Block *blk = new Block(prev, n_id);
-    add_block(n_id, blk);
-    
-    for(int peer : node.peers)
-        event_queue.push(new BlockRecvEvent(global_time+10, peer, blk));
+    Block *blk = node.create_block();
+    node.add_block(blk);
+    node.forward(blk);
+    node.mining = false;
 }
+
+void Node::reset_mempool() {
+    balance = blockchain->get_last_blk()->balance;
+    list<Transaction*> buffer = mem_pool;
+    mem_pool.clear();
+    for(Transaction *txn : buffer)
+        if(is_valid(txn))
+            add_txn(txn);
+}
+
+void Node::add_block(Block *blk) {
+    blockchain->insert(blk);
+    reset_mempool();
+}
+
+
 
 void forward_blk(int n_id, Block* blk) {
     Node &node = nodes->at(n_id);
@@ -193,7 +208,7 @@ void Node::add_txn(Transaction *txn) {
 }
 
 void Node::start_mining() {
-    if(mining || mem_pool.size() < 80)
+    if(mining || mem_pool.size() < BLOCK_SIZE)
         return;
     mining = true;
     event_queue.push(new BlockMinedEvent(global_time+20, id, blockchain->get_last_blk()));
@@ -204,12 +219,27 @@ void Node::forward(Transaction *txn) const {
         event_queue.push(new TxnRecvEvent(global_time+10, id, txn));
 }
 
+void Node::forward(Block *blk) const {
+    for(int peer : peers)
+        event_queue.push(new BlockRecvEvent(global_time + 5, peer, blk));
+}
+
 bool Node::visited(Transaction *txn) const {
     return visited_txns.find(txn->id) != visited_txns.end();
 }
 
 bool Node::is_valid(Transaction *txn) const {
     return balance[txn->sender] >= txn->amount;
+}
+
+Block *Node::create_block() {
+    Block *blk = new Block(blockchain->get_last_blk(), id);
+    for(int i=0; i<BLOCK_SIZE; i++)
+    {
+        blk->add_txn(mem_pool.front());
+        mem_pool.pop_front();
+    }
+    return blk;
 }
 
 // 1. update and validate mem-pool

@@ -104,7 +104,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         /* If the mined block is still valid, add it to blockchain and forward to peer nodes */
-        // mine_block(s_ev->n_id, s_ev->prev);
+        mine_block(s_ev->n_id, s_ev->prev);
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent))
