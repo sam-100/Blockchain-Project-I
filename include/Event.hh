@@ -13,6 +13,7 @@ struct Event
 
     Event(clock_time t, int n);
     virtual void test() = 0;
+    virtual void to_string(ostream &os) const = 0;
     friend ostream &operator<<(ostream &os, const Event *ev);
 };
 
@@ -24,8 +25,8 @@ struct compare_events
 struct TxnSendEvent : public Event 
 {
     TxnSendEvent(clock_time timestamp, int n_id);
-    friend ostream &operator<<(ostream &os, const TxnSendEvent *ev);
     void test();
+    void to_string(ostream &os) const;
 };
 
 struct TxnRecvEvent : public Event
@@ -33,21 +34,28 @@ struct TxnRecvEvent : public Event
     Transaction *txn;
 
     TxnRecvEvent(clock_time timestamp, int n_id, Transaction *txn);
-    friend ostream &operator<<(ostream &os, const TxnRecvEvent *ev);
     void test();
+    void to_string(ostream &os) const;
 };
 
-// struct BlockMinedEvent : public Event 
-// {
+struct BlockMinedEvent : public Event 
+{
+    Block *prev;
     
-//     void test();
-// };
+    BlockMinedEvent(clock_time t, int n, Block *p);
+    void test();
+    void to_string(ostream &os) const;
+};
 
-// struct BlockRecvEvent : public Event
-// {
+struct BlockRecvEvent : public Event
+{
+    Block *blk;
+    
+    BlockRecvEvent(clock_time t, int n, Block *blk);
+    void test();
+    void to_string(ostream &os) const;
 
-//     void test();
-// };
+};
 
 
 void process_event(Event*);

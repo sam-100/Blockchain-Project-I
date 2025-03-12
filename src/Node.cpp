@@ -2,38 +2,44 @@
 #include "utils.hh"
 #include "Transaction.hh"
 #include "Event.hh"
+#include "Block.hh"
 #include <iostream>
 
 using namespace std;
 
 
 int Node::cnt = 0;
+
 Node::Node(bool low, bool slow) {
     id = cnt++;
     this->low = low;
     this->slow = slow;
+    this->mining = false;
     balance = vector<currency>(num_peers, 100);
+    genesis = new Block(nullptr, -1);
+    blockchain = new Blockchain(genesis);
 }
 
 void create_topology(int node_cnt) {
+    nodes = new vector<Node>();
     for(int i=0; i<node_cnt; i++)
     {
         Node node(random_int(0, 100) <= low, random_int(0, 100) <= slow);
-        nodes.push_back(node);
+        nodes->push_back(node);
     }
     
     while(!is_connected())
     {
         clear_network();
         
-        for(Node node : nodes)
+        for(Node node : *nodes)
         {
             if(node.peers.size() >= MIN_DEGREE)
                 continue;
             int peer;
             do {
-                peer = random_int(0, nodes.size());
-            } while(nodes[peer].peers.size() >= MAX_DEGREE);
+                peer = random_int(0, nodes->size());
+            } while(nodes->at(peer).peers.size() >= MAX_DEGREE);
 
             connect_nodes(node.id, peer);
         }
@@ -41,7 +47,7 @@ void create_topology(int node_cnt) {
 }
 
 bool is_connected() {
-    vector<bool> visited(nodes.size(), false);
+    vector<bool> visited(nodes->size(), false);
 
     visit_dfs(0, visited);
     
@@ -53,24 +59,24 @@ bool is_connected() {
 
 void visit_dfs(int curr, vector<bool> &visited) {
     visited[curr] = true;
-    for(int peer : nodes[curr].peers)
+    for(int peer : nodes->at(curr).peers)
         if(!visited[peer])
             visit_dfs(peer, visited);
     return;
 }
 
 void clear_network() {
-    for(int i=0; i<nodes.size(); i++)
-        nodes[i].peers.clear();
+    for(int i=0; i<nodes->size(); i++)
+        nodes->at(i).peers.clear();
 }
 
 void connect_nodes(int node_this, int node_that) {
-    nodes[node_this].peers.insert(node_that);
-    nodes[node_that].peers.insert(node_this);
+    nodes->at(node_this).peers.insert(node_that);
+    nodes->at(node_that).peers.insert(node_this);
 }
 
 void print_network() {
-    for(Node node : nodes) {
+    for(Node node : *nodes) {
         cout << node.id << ": ";
         for(int peer : node.peers)
             cout << peer << " | ";
@@ -79,7 +85,7 @@ void print_network() {
 }
 
 void print_edges() {
-    for(Node node : nodes)
+    for(Node node : *nodes)
         for(int peer : node.peers)
             cout << node.id << " " << peer << endl;
 }
@@ -96,7 +102,7 @@ ostream &operator<<(ostream &out, const Node &node) {
 }
 
 void forward_txn(int n_id, Transaction *txn) {
-    Node &node = nodes[n_id];
+    Node &node = nodes->at(n_id);
     if(node.visited_txns.find(txn->id) != node.visited_txns.end())
         return;
 
@@ -110,7 +116,99 @@ void forward_txn(int n_id, Transaction *txn) {
 
     for(int peer : node.peers)
         event_queue.push(new TxnRecvEvent(global_time + 10, peer, txn));
+    
+    if(node.mining == false && node.mem_pool.size() >= 1023)
+    {
+        node.mining = true;
+        event_queue.push(new BlockMinedEvent(global_time + 20, n_id, node.blockchain->get_last_blk()));
+    }
+
     return;    
+}
+
+
+/* Create a new block, and send it to the peers */
+void add_block(int n_id, Block *blk) {
+    // push first 1023 txns from mem_pool to blk
+    Node &node = nodes->at(n_id);
+    for(int i=0; i<1023; i++)
+    {
+        blk->txn_list.push_back(node.mem_pool.front());
+        node.mem_pool.pop_front();
+    }
+    // node.blockchain.add(blk);
+}
+
+void mine_block(int n_id, Block *prev) {
+    Node &node = nodes->at(n_id);
+    if(node.blockchain->get_last_blk() != prev)
+    {
+        node.mining = false;
+        return;
+    }
+
+    Block *blk = new Block(prev, n_id);
+    add_block(n_id, blk);
+    
+    for(int peer : node.peers)
+        event_queue.push(new BlockRecvEvent(global_time+10, peer, blk));
+}
+
+void forward_blk(int n_id, Block* blk) {
+    Node &node = nodes->at(n_id);
+    if(node.blockchain->get_last_blk() != blk->prev_blk) 
+        return;
+    if(node.blockchain->contains(blk))
+        return;
+    add_block(n_id, blk);
+    for(int peer : node.peers)
+        event_queue.push(new BlockRecvEvent(global_time+10, peer, blk));    
+}
+
+void transaction_send(int n_id) {
+    Node &node = nodes->at(n_id);
+    float bal = node.balance[n_id];
+    Transaction *txn = new Transaction(n_id, random_int(0, nodes->size()), random_float(0, bal));
+    node.add_txn(txn);
+    node.forward(txn);
+    node.start_mining();
+}
+
+void transaction_recv(int n_id, Transaction *txn) {
+    Node &node = nodes->at(n_id);
+    if(!node.is_valid(txn) || node.visited(txn))
+        return;
+    node.add_txn(txn);
+    node.forward(txn);
+    node.start_mining();
+}
+
+void Node::add_txn(Transaction *txn) {
+    mem_pool.push_back(txn);
+    balance[txn->sender] -= txn->amount;
+    balance[txn->receiver] += txn->amount;
+    visited_txns.insert(txn->id);
+    return;
+}
+
+void Node::start_mining() {
+    if(mining || mem_pool.size() < 80)
+        return;
+    mining = true;
+    event_queue.push(new BlockMinedEvent(global_time+20, id, blockchain->get_last_blk()));
+}
+
+void Node::forward(Transaction *txn) const {
+    for(int peer : peers)
+        event_queue.push(new TxnRecvEvent(global_time+10, id, txn));
+}
+
+bool Node::visited(Transaction *txn) const {
+    return visited_txns.find(txn->id) != visited_txns.end();
+}
+
+bool Node::is_valid(Transaction *txn) const {
+    return balance[txn->sender] >= txn->amount;
 }
 
 // 1. update and validate mem-pool

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-vector<Node> nodes;
+vector<Node> *nodes;
 float slow, low;
 clock_time avg_send;
 clock_time global_time;
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
     // 2. Create and initialize objects 
     create_topology(num_peers);
-    for(int i=0; i<nodes.size(); i++)
+    for(int i=0; i<nodes->size(); i++)
         event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
     
     /* Logging the network information */
@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
         event_queue.pop();
         
         process_event(ev);
-        cout << "global time = " << global_time << endl;
     }
     
     // 4. Log the result here.

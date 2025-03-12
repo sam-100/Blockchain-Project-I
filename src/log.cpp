@@ -4,6 +4,7 @@
 #include "utils.hh"
 #include <string.h>
 #include <Transaction.hh>
+#include "Event.hh"
 
 using namespace std;
 
@@ -13,7 +14,7 @@ void log_topology() {
 
     file << "-----------*** The Network Topology ***-----------------" << endl << endl;
 
-    for(Node node : nodes) {
+    for(Node node : *nodes) {
         file << "Node " << node.id << ": " << node.peers << endl;
     }
     file.close();
@@ -24,7 +25,7 @@ void log_nodes() {
 
     file << "-----------*** The Node instances ***-----------------" << endl << endl;
 
-    for(Node node : nodes)
+    for(Node node : *nodes)
     {
         file << node << endl;
 
@@ -38,10 +39,18 @@ void log(const char* file, const char* msg) {
     
 }
 
+void log_event(Event *ev) {
+    int n_id = ev->n_id;
+    string filename = "log/events/node-" + to_string(n_id);
+    ofstream event_log(filename, std::ios::app);
+    event_log << ev << endl;
+    return;
+}
+
 void log_mempools() {
-    for(Node node : nodes)
+    for(Node node : *nodes)
     {
-        string filename = "log/mempool-" + to_string(node.id);
+        string filename = "log/mempool/node-" + to_string(node.id);
         ofstream mem_pool(filename);
         mem_pool << "---------------*** Mem-pool ***------------------" << endl << endl;
         for(Transaction *txn : node.mem_pool)

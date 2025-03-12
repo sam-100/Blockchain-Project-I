@@ -4,6 +4,7 @@
 #include "Node.hh"
 #include "utils.hh"
 #include <iostream>
+#include "log.hh"
 
 using namespace std;
 
@@ -15,24 +16,25 @@ bool compare_events::operator()(const Event *ev1, const Event *ev2) {
 }
 
 ostream &operator<<(ostream &os, const Event *ev) {
-    os << "Event " << "{";
-    os << "n_id : " << ev->n_id << ", ";
-    os << "timestamp: " << ev->timestamp << " ";
-    os << "}";
+    ev->to_string(os);
     return os;
 }
 
 TxnSendEvent::TxnSendEvent(clock_time timestamp, int n_id) : Event(timestamp, n_id) {}
 
 ostream &operator<<(ostream &os, const TxnSendEvent *ev) {
-    os << "TxnSendEvent " << "{";
-    os << "n_id : " << ev->n_id << ", ";
-    os << "timestamp: " << ev->timestamp << " ";
-    os << "}";
+    
     return os;
 }
 
 void TxnSendEvent::test() {}
+
+void TxnSendEvent::to_string(ostream &os) const {
+    os << "TxnSendEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp: " << timestamp << " ";
+    os << "}";
+}
 
 TxnRecvEvent::TxnRecvEvent(clock_time timestamp, int n_id, Transaction *txn) : Event(timestamp, n_id) {
     this->txn = txn;
@@ -40,29 +42,48 @@ TxnRecvEvent::TxnRecvEvent(clock_time timestamp, int n_id, Transaction *txn) : E
 
 void TxnRecvEvent::test() {};
 
-ostream &operator<<(ostream &os, const TxnRecvEvent *ev) {
+void TxnRecvEvent::to_string(ostream &os) const {
     os << "TxnRecvEvent " << "{";
-    os << "n_id : " << ev->n_id << ", ";
-    os << "timestamp: " << ev->timestamp << ", ";
-    os << "txn : " << *ev->txn << " ";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp: " << timestamp << ", ";
+    os << "txn : " << *txn << " ";
     os << "}";
-    return os;
 }
 
 
+BlockMinedEvent::BlockMinedEvent(clock_time t, int n, Block *p) : Event(t, n) {
+    prev = p;
+}
+
+void BlockMinedEvent::to_string(ostream &os) const {
+    os << "BlockMinedEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp: " << timestamp << ", ";
+    os << "prev_id: " << prev->id << " ";
+    os << "}";
+}
+
+void BlockMinedEvent::test() {};
+
+BlockRecvEvent::BlockRecvEvent(clock_time t, int n, Block *blk) : Event(t, n) {
+    this->blk = blk;
+}
+
+void BlockRecvEvent::test() {};
+void BlockRecvEvent::to_string(ostream &os) const {
+
+}
+
 void process_event(Event *ev) {
     global_time = ev->timestamp;
-    
-    Node &node = nodes[ev->n_id];
+    Node &node = nodes->at(ev->n_id);
     if(typeid(*ev) == typeid(TxnSendEvent))
     {
         TxnSendEvent *s_ev = (TxnSendEvent*)ev;
-        cout << s_ev << endl;
+        log_event(s_ev);
 
         /* Create a new Transaction and broadcast it to peer nodes */
-        float bal = node.balance[ev->n_id];
-        Transaction *txn = new Transaction(ev->n_id, random_int(0, nodes.size()), random_float(0, bal));
-        forward_txn(ev->n_id, txn);
+        transaction_send(s_ev->n_id);
 
         /* Adding next send event to the queue.*/
         event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), ev->n_id));
@@ -71,26 +92,29 @@ void process_event(Event *ev) {
     if(typeid(*ev) == typeid(TxnRecvEvent))
     {
         TxnRecvEvent *s_ev = (TxnRecvEvent*)ev;
-        cout << s_ev << endl;
+        log_event(s_ev);
         
         /* If txn is new, mark it visited and forward to peer nodes */
-        forward_txn(s_ev->n_id, s_ev->txn);
+        transaction_recv(s_ev->n_id, s_ev->txn);
         return;
     }
-    // if(typeid(*ev) == typeid(BlockMinedEvent))
-    // {
-    //     BlockMinedEvent *s_ev = (BlockMinedEvent*)ev;
-    //     // cout << s_ev << endl;
+    if(typeid(*ev) == typeid(BlockMinedEvent))
+    {
+        BlockMinedEvent *s_ev = (BlockMinedEvent*)ev;
+        log_event(s_ev);
 
-    //     /* If the mined block is still valid, add it to blockchain and forward to peer nodes */
-    //     return;
-    // }
-    // if(typeid(*ev) == typeid(BlockRecvEvent))
-    // {
-    //     BlockRecvEvent *s_ev = (BlockRecvEvent*)ev;
-    //     // cout << s_ev << endl;
+        /* If the mined block is still valid, add it to blockchain and forward to peer nodes */
+        // mine_block(s_ev->n_id, s_ev->prev);
+        return;
+    }
+    if(typeid(*ev) == typeid(BlockRecvEvent))
+    {
+        BlockRecvEvent *s_ev = (BlockRecvEvent*)ev;
+        log_event(s_ev);
 
-    //     /* If received block is valid, add it to blockchain and forward to peer nodes */
-    //     return;
-    // }
+        /* If received block is valid, add it to blockchain and forward to peer nodes */
+        // forward_blk(s_ev->n_id, s_ev->blk);
+        
+        return;
+    }
 }
