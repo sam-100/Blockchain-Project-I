@@ -51,5 +51,4 @@ void forward_blk(int n_id, Block* blk);
 void transaction_send(int n_id);
 void transaction_recv(int n_id, Transaction *txn);
 
-
 #endif
