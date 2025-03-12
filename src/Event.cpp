@@ -71,7 +71,11 @@ BlockRecvEvent::BlockRecvEvent(clock_time t, int n, Block *blk) : Event(t, n) {
 
 void BlockRecvEvent::test() {};
 void BlockRecvEvent::to_string(ostream &os) const {
-
+    os << "BlockRecvEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp: " << timestamp << ", ";
+    os << "blk_id: " << blk->id << " ";
+    os << "}";
 }
 
 void process_event(Event *ev) {
@@ -80,7 +84,7 @@ void process_event(Event *ev) {
     if(typeid(*ev) == typeid(TxnSendEvent))
     {
         TxnSendEvent *s_ev = (TxnSendEvent*)ev;
-        log_event(s_ev);
+        // log_event(s_ev);
 
         /* Create a new Transaction and broadcast it to peer nodes */
         transaction_send(s_ev->n_id);
@@ -92,7 +96,7 @@ void process_event(Event *ev) {
     if(typeid(*ev) == typeid(TxnRecvEvent))
     {
         TxnRecvEvent *s_ev = (TxnRecvEvent*)ev;
-        log_event(s_ev);
+        // log_event(s_ev);
         
         /* If txn is new, mark it visited and forward to peer nodes */
         transaction_recv(s_ev->n_id, s_ev->txn);
@@ -113,7 +117,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         /* If received block is valid, add it to blockchain and forward to peer nodes */
-        // forward_blk(s_ev->n_id, s_ev->blk);
+        block_recv(s_ev->n_id, s_ev->blk);
         
         return;
     }

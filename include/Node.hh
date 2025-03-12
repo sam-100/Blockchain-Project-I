@@ -51,6 +51,7 @@ void connect_nodes(int node_this, int node_that);
 void visit_dfs(int curr, vector<bool> &visited);
 void print_edges();
 void mine_block(int n_id, Block* prev);
+void block_recv(int n_id, Block *blk);
 void forward_blk(int n_id, Block* blk);
 
 void transaction_send(int n_id);

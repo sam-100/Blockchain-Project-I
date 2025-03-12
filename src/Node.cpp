@@ -168,6 +168,20 @@ void Node::add_block(Block *blk) {
     reset_mempool();
 }
 
+void block_recv(int n_id, Block *blk) {
+    Node &node = nodes->at(n_id);
+    
+    if(blk->prev_blk != node.blockchain->get_last_blk())
+    {
+        node.mining = false;
+        return;
+    }
+
+    node.add_block(blk);
+    node.forward(blk);
+
+
+}
 
 
 void forward_blk(int n_id, Block* blk) {
@@ -241,6 +255,7 @@ Block *Node::create_block() {
     }
     return blk;
 }
+
 
 // 1. update and validate mem-pool
 // 2. re-evaluate balance vector
