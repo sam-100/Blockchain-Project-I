@@ -10,21 +10,22 @@ using namespace std;
 
 int Node::cnt = 0;
 
-Node::Node(bool low, bool slow) {
+Node::Node(bool low, bool slow, Block *gen) {
     id = cnt++;
     this->low = low;
     this->slow = slow;
     this->mining = false;
     balance = vector<currency>(num_peers, 100);
-    genesis = new Block(nullptr, -1);
+    genesis = gen;
     blockchain = new Blockchain(genesis);
 }
 
 void create_topology(int node_cnt) {
     nodes = new vector<Node>();
+    Block *genesis = new Block(nullptr, -1);
     for(int i=0; i<node_cnt; i++)
     {
-        Node node(random_int(0, 100) <= low, random_int(0, 100) <= slow);
+        Node node(random_int(0, 100) <= low, random_int(0, 100) <= slow, genesis);
         nodes->push_back(node);
     }
     

@@ -28,7 +28,7 @@ struct Node
     
     static int cnt;
 
-    Node(bool low, bool slow);
+    Node(bool low, bool slow, Block *gen);
     void add_txn(Transaction *txn);
     void start_mining();
     bool visited(Transaction *txn) const;
