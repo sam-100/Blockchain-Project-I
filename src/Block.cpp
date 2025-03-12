@@ -30,3 +30,18 @@ void Block::add_txn(Transaction *txn) {
     balance[txn->sender] -= txn->amount;
     balance[txn->receiver] += txn->amount;
 }
+
+int Block::prev_id() const {
+    return prev_blk != nullptr ? prev_blk->id : -1;
+}
+
+ostream &operator<<(ostream &os, const Block *blk) {
+    os << "Block " << "{ ";
+    os << "id : " << blk->id << ", ";
+    os << "prev : " << blk->prev_id() << ", ";
+    os << "timestamp : " << blk->timestamp << ", ";
+    os << "height : " << blk->height << " ";
+    os << "}";
+    return os;
+}
+

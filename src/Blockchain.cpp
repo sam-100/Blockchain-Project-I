@@ -29,3 +29,9 @@ Block *Blockchain::get_last_blk() {
 bool Blockchain::contains(Block *blk) const {
     return blocks.find(blk) != blocks.end();
 }
+
+ostream &operator<<(ostream &os, const Blockchain *bc) {
+    for(Block *blk : bc->blocks)
+        os << blk << endl;
+    return os;
+}

@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
     log_nodes();
     log_topology();
     log_mempools();
+    log_blockchains();
 
     return 0;
 }

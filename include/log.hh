@@ -6,7 +6,8 @@
 void log_topology();
 void log_nodes();
 void log_mempools();
+void log_blockchains();
+
 void log(const char* file, const char* msg);
 void log_event(Event *ev);
-
 #endif

@@ -3,6 +3,7 @@
 
 #include "Declarations.hh"
 #include <vector>
+#include <ostream>
 
 using namespace std;
 
@@ -19,6 +20,8 @@ struct Block
 
     Block(Block* prev, int n_id);
     void add_txn(Transaction *txn);
+    int prev_id() const;
+    friend ostream &operator<<(ostream &os, const Block *blk);
 };
 
 

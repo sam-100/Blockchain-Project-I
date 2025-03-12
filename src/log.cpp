@@ -58,3 +58,14 @@ void log_mempools() {
         mem_pool.close();
     }
 }
+
+void log_blockchains() {
+    for(Node node : *nodes)
+    {
+        string filename = "log/blockchain/node-" + to_string(node.id);
+        ofstream file(filename);
+        file << "----------------------*** Blockchain ***--------------------------" << endl;
+        file << node.blockchain;
+        file.close();
+    }
+}
