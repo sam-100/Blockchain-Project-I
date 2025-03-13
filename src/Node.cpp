@@ -102,6 +102,7 @@ ostream &operator<<(ostream &out, const Node &node) {
     out << "\tslow : " << node.slow << endl;
     out << "\tpeers : " << node.peers << endl;
     out << "\tbalance : " << node.balance << endl;
+    out << "\tlast-block: " << node.blockchain->get_last_blk()->id << " " << endl;
     out << "}" << endl;
     return out;
 }

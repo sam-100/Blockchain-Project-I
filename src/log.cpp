@@ -24,14 +24,8 @@ void log_nodes() {
     ofstream file("log/nodes");
 
     file << "-----------*** The Node instances ***-----------------" << endl << endl;
-
     for(Node node : *nodes)
-    {
-        file << node << endl;
-
-    }
-    
-    
+        file << node << endl;    
     file.close();
 }
 
@@ -68,4 +62,18 @@ void log_blockchains() {
         file << node.blockchain;
         file.close();
     }
+}
+
+void log_statistics() {
+    int low = 0, slow = 0;
+    for(Node node : *nodes) {
+        low += node.low;
+        slow += node.slow;
+    }
+    
+    ofstream file("log/stats");
+    file << "-------------------------*** Network statistics ***-------------------------" << endl;
+    file << "Low-cpu nodes: " << low << "/" << num_peers << " (" << (low*100)/num_peers << "% ) " << endl;
+    file << "Slow-link nodes: " << slow << "/" << num_peers << " (" << (slow*100)/num_peers << "% ) " << endl;
+    file.close();
 }

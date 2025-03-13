@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
     log_topology();
     log_mempools();
     log_blockchains();
+    log_statistics();
 
     return 0;
 }
