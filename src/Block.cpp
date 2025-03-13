@@ -41,8 +41,8 @@ ostream &operator<<(ostream &os, const Block *blk) {
     os << "id : " << blk->id << ", ";
     os << "prev : " << blk->prev_id() << ", ";
     os << "timestamp : " << blk->timestamp << ", ";
-    os << "height : " << blk->height << ", "<< endl;
-    os << "\tbalance : " << blk->balance << " ";
+    os << "height : " << blk->height << " "; // ", "<< endl;
+    // os << "\tbalance : " << blk->balance << " ";
     os << "}";
     return os;
 }
