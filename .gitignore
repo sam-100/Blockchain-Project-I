@@ -1,15 +1,2 @@
+log/
 simulation
-
-log/*
-!log/events/
-!log/mempool/
-!log/blockchain/
-
-log/events/*
-!log/events/.gitkeep
-
-log/mempool/*
-!log/mempool/.gitkeep
-
-log/blockchain/*
-!log/blockchain/.gitkeep
