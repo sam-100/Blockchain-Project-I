@@ -164,14 +164,18 @@ void Node::reset_mempool() {
 }
 
 void Node::add_block(Block *blk) {
+    #ifdef DEBUG 
+        cout << "node " << id << ", blk = " << blk->id << endl; 
+    #endif
     blockchain->insert(blk);
-    reset_mempool();
+    if(blk == blockchain->get_last_blk())
+        reset_mempool();
 }
 
 void block_recv(int n_id, Block *blk) {
     Node &node = nodes->at(n_id);
     
-    if(blk->prev_blk != node.blockchain->get_last_blk())
+    if(!node.blockchain->contains(blk->prev_blk) || node.blockchain->contains(blk))
     {
         node.mining = false;
         return;

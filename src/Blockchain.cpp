@@ -1,15 +1,22 @@
 #include "Blockchain.hh"
 #include "Node.hh"
+#include <iostream>
 
 Blockchain::Blockchain(Block *genesis) {
     insert(genesis);         // genesis block 
 }
 
 void Blockchain::insert(Block *blk) {
-    blk->prev_blk = get_last_blk();
+    #ifdef DEBUG
+        std::cout <<"inserting block: \n" << blk << std::endl;
+    #endif
     blocks.insert(blk);
-    tail_blks.erase(blk->prev_blk);
+    if(tail_blks.find(blk->prev_blk) != tail_blks.end())
+        tail_blks.erase(blk->prev_blk);
     tail_blks.insert(blk);
+    #ifdef DEBUG
+        getchar();
+    #endif
 }
 
 Block *Blockchain::get_last_blk() {
@@ -31,7 +38,15 @@ bool Blockchain::contains(Block *blk) const {
 }
 
 ostream &operator<<(ostream &os, const Blockchain *bc) {
-    for(Block *blk : bc->blocks)
-        os << blk << endl;
+    for(Block *tail : bc->tail_blks)
+    {
+        Block *curr = tail;
+        while(curr != nullptr)
+        {
+            os << curr << endl;
+            curr = curr->prev_blk;
+        }
+        os << endl;
+    }
     return os;
 }

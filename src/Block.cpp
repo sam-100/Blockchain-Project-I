@@ -22,7 +22,6 @@ Block::Block(Block* prev, int n_id) {
     prev_blk = prev;
     balance = prev->balance;
     txn_list.push_back(new Transaction(-1, n_id, 25));          // coinbase txn
-    cout << "Balance : " << balance << endl;
     balance[n_id] += 25;
     timestamp = global_time;
 }
