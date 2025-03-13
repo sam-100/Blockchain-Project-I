@@ -1,4 +1,5 @@
 log/
 simulation
 simulation-gdb
+simulation-debug
 Todo

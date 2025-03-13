@@ -19,6 +19,7 @@ struct Node
     bool low;
     bool slow;
     bool mining;
+    clock_time p_delay;
     std::unordered_set<int> peers;
     std::vector<currency> balance;
     std::unordered_set<int> visited_txns;
@@ -39,6 +40,8 @@ struct Node
     Block *create_block();
     void add_block(Block *blk);
     void forward(Block *blk) const;
+
+    clock_time get_latency(int peer, int size) const;
 
     friend ostream &operator<<(ostream &out, const Node &node);
 };

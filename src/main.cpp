@@ -14,6 +14,7 @@ clock_time avg_send;
 clock_time global_time;
 int num_peers;
 priority_queue<Event*, vector<Event*>, compare_events> event_queue;
+vector<vector<double>> prop_delay;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
@@ -28,6 +29,7 @@ int main(int argc, char **argv) {
     avg_send = atof(argv[4]);
 
     // 2. Create and initialize objects 
+    prop_delay.resize(num_peers, vector<clock_time>(num_peers, 0));
     create_topology(num_peers);
     for(int i=0; i<nodes->size(); i++)
         event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));

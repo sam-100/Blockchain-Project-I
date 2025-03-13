@@ -4,6 +4,7 @@
 #include "Event.hh"
 #include "Block.hh"
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -71,9 +72,12 @@ void clear_network() {
         nodes->at(i).peers.clear();
 }
 
-void connect_nodes(int node_this, int node_that) {
-    nodes->at(node_this).peers.insert(node_that);
-    nodes->at(node_that).peers.insert(node_this);
+void connect_nodes(int i, int j) {
+    nodes->at(i).peers.insert(j);
+    nodes->at(j).peers.insert(i);
+    
+    clock_time pd = random_float(0.010, 0.500);
+    prop_delay[i][j] = prop_delay[j][i] = pd;
 }
 
 void print_network() {
@@ -234,12 +238,18 @@ void Node::start_mining() {
 
 void Node::forward(Transaction *txn) const {
     for(int peer : peers)
-        event_queue.push(new TxnRecvEvent(global_time+10, id, txn));
+    {
+        clock_time latency = get_latency(peer, pow(2, 10)*8);
+        event_queue.push(new TxnRecvEvent(global_time + latency, id, txn));
+    }
 }
 
 void Node::forward(Block *blk) const {
     for(int peer : peers)
-        event_queue.push(new BlockRecvEvent(global_time + 5, peer, blk));
+    {
+        clock_time latency = get_latency(peer, pow(2, 20)*8);
+        event_queue.push(new BlockRecvEvent(global_time + latency, peer, blk));
+    }
 }
 
 bool Node::visited(Transaction *txn) const {
@@ -258,6 +268,15 @@ Block *Node::create_block() {
         mem_pool.pop_front();
     }
     return blk;
+}
+
+
+clock_time Node::get_latency(int peer, int size) const {
+    clock_time pd = prop_delay[id][peer];
+    double link_speed = ((nodes->at(peer).slow || slow) ? 5 : 100)*pow(2, 20);
+    clock_time q_delay = random_exp_float(96*pow(2, 10)/link_speed);
+    
+    return pd + size/link_speed + q_delay;
 }
 
 

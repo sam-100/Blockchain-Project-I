@@ -7,16 +7,10 @@ Blockchain::Blockchain(Block *genesis) {
 }
 
 void Blockchain::insert(Block *blk) {
-    #ifdef DEBUG
-        std::cout <<"inserting block: \n" << blk << std::endl;
-    #endif
     blocks.insert(blk);
     if(tail_blks.find(blk->prev_blk) != tail_blks.end())
         tail_blks.erase(blk->prev_blk);
     tail_blks.insert(blk);
-    #ifdef DEBUG
-        getchar();
-    #endif
 }
 
 Block *Blockchain::get_last_blk() {

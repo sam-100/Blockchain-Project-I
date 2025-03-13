@@ -27,5 +27,7 @@ extern float slow, low;
 extern clock_time avg_send;
 extern clock_time global_time;
 extern int num_peers;
+extern vector<vector<double>> prop_delay;
+
 
 #endif
