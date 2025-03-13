@@ -42,6 +42,7 @@ struct Node
     void forward(Block *blk) const;
 
     clock_time get_latency(int peer, int size) const;
+    double h_fraction() const;
 
     friend ostream &operator<<(ostream &out, const Node &node);
 };

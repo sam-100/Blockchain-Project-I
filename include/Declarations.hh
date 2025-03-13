@@ -4,7 +4,9 @@
 #include <vector>
 #include <queue>
 
-#define BLOCK_SIZE 100
+#define BLOCK_SIZE 1024
+#define BLOCK_REWARD 50
+#define BLOCK_INTV_TIME 600
 
 using namespace std;
 

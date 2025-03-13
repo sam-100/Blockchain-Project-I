@@ -84,7 +84,6 @@ void process_event(Event *ev) {
     if(typeid(*ev) == typeid(TxnSendEvent))
     {
         TxnSendEvent *s_ev = (TxnSendEvent*)ev;
-        // log_event(s_ev);
 
         /* Create a new Transaction and broadcast it to peer nodes */
         transaction_send(s_ev->n_id);
@@ -96,7 +95,6 @@ void process_event(Event *ev) {
     if(typeid(*ev) == typeid(TxnRecvEvent))
     {
         TxnRecvEvent *s_ev = (TxnRecvEvent*)ev;
-        // log_event(s_ev);
         
         /* If txn is new, mark it visited and forward to peer nodes */
         transaction_recv(s_ev->n_id, s_ev->txn);

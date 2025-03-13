@@ -169,9 +169,6 @@ void Node::reset_mempool() {
 }
 
 void Node::add_block(Block *blk) {
-    #ifdef DEBUG 
-        cout << "node " << id << ", blk = " << blk->id << endl; 
-    #endif
     blockchain->insert(blk);
     if(blk == blockchain->get_last_blk())
         reset_mempool();
@@ -234,7 +231,16 @@ void Node::start_mining() {
     if(mining || mem_pool.size() < BLOCK_SIZE)
         return;
     mining = true;
-    event_queue.push(new BlockMinedEvent(global_time+20, id, blockchain->get_last_blk()));
+    clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
+    event_queue.push(new BlockMinedEvent(global_time+mining_time, id, blockchain->get_last_blk()));
+}
+
+double Node::h_fraction() const {
+    double hp = low ? 1 : 10;
+    double thp = 0;
+    for(Node node : *nodes)
+        thp += node.low ? 1 : 10;
+    return hp/thp;
 }
 
 void Node::forward(Transaction *txn) const {
