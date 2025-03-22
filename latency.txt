@@ -1,0 +1,11 @@
+1 blocks created.
+latency for size message = 0.0595519
+latency for size transaction = 0.0230441
+latency for size block = 0.209642
+link = slow
+
+1 blocks created.
+latency for size message = 0.343201
+latency for size transaction = 0.341752
+latency for size block = 0.351675
+link = fast

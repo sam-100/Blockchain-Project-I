@@ -21,6 +21,7 @@ struct Blockchain
     Block *get_blk(string hash);
     bool contains(Block *blk) const;
     bool contains_hash(string hash) const;
+    int height();
     friend ostream &operator<<(ostream &os, const Blockchain *bc);
 };
 

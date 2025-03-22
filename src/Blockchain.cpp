@@ -39,6 +39,10 @@ bool Blockchain::contains_hash(string hash) const {
     return visited_hash.find(hash) != visited_hash.end();
 }
 
+int Blockchain::height() {
+    return get_last_blk()->height;
+}
+
 ostream &operator<<(ostream &os, const Blockchain *bc) {
     for(Block *tail : bc->tail_blks)
     {

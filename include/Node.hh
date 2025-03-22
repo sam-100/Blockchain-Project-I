@@ -36,7 +36,7 @@ struct Node
     bool is_valid(Transaction *txn) const;
     void broadcast(Transaction *txn) const;
     void send(Transaction *txn, int peer) const;
-    
+
     void start_mining();
     void reset_mempool();
 
@@ -47,6 +47,7 @@ struct Node
     
     void broadcast(string hash) const;
     void send(string hash, int peer) const;
+    void request(string hash, int peer) const;
     
     void txn_send_event();
     void txn_recv_event(Transaction *txn);

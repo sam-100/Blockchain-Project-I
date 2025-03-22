@@ -53,7 +53,7 @@ void BlockMinedEvent::to_string(ostream &os) const {
     os << "BlockMinedEvent " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp: " << timestamp << ", ";
-    os << "prev_id: " << prev->id << " ";
+    os << "prev: " << prev->id << " ";
     os << "}";
 }
 void BlockMinedEvent::test() {};
@@ -82,7 +82,8 @@ void TimeOutEvent::to_string(ostream &os) const {
     os << "TimeOutEvent " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
-    os << "hash : " << hash << ", ";
+    os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
+    // os << "hash : " << hash << ", ";
     os << "sender : " << sender << " ";
     os << "}";
 }
@@ -98,7 +99,8 @@ void HashRecvEvent::to_string(ostream &os) const {
     os << "HashRecvEvent " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
-    os << "hash : " << hash << ", ";
+    os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
+    // os << "hash : " << hash << ", ";
     os << "sender : " << sender << " ";
     os << "}";
 }
@@ -113,7 +115,8 @@ void BlockGetReqEvent::to_string(ostream &os) const {
     os << "BlockGetReqEvent " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
-    os << "hash : " << hash << ", ";
+    os << "blk : " << nodes->at(n_id).blockchain->get_blk(hash)->id << ", ";
+    // os << "hash : " << hash << ", ";
     os << "sender : " << sender << " ";
     os << "}";
 }
@@ -132,7 +135,8 @@ void process_event(Event *ev) {
         node.txn_send_event();
 
         /* Adding next send event to the queue.*/
-        event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), ev->n_id));
+        if(Block::cnt < STOP_PARAMETER)
+            event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), ev->n_id));
         return;
     }
     if(typeid(*ev) == typeid(TxnRecvEvent))
@@ -166,7 +170,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
         
         /* A node upon getting this event, sends the block to requesting node. */
-        node.block_get_event(s_ev->n_id, s_ev->hash);
+        node.block_get_event(s_ev->sender, s_ev->hash);
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent))

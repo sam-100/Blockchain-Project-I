@@ -11,9 +11,7 @@ int Block::cnt = 0;
 
 Block::Block(Block* prev, int n_id) {
     id = cnt++;
-    #ifdef DEBUG
-        cout << cnt << " blocks created." << endl;
-    #endif
+    cout << cnt << " blocks created." << endl;
 
     if(prev == nullptr && n_id == -1)                           // genesis block
     {

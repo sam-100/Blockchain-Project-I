@@ -26,19 +26,18 @@ int main(int argc, char **argv) {
     malicious = atoi(argv[2]);
     avg_send = atof(argv[3]);
     timeout_time = atof(argv[4]);
-
+    
     // 2. Create and initialize objects 
     prop_delay.resize(num_peers, vector<clock_time>(num_peers, 0));
     create_topology(num_peers);
     for(int i=0; i<nodes->size(); i++)
-        event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
+    event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
     
-    /* Logging the network information */
     
     // 3. While Queue is not empty, do:
     //     3.1. pop first event from the queue
     //     3.2. process the first event
-    while(!event_queue.empty() && Block::cnt < STOP_PARAMETER)
+    while(!event_queue.empty())
     {
         Event *ev = event_queue.top();
         event_queue.pop();
@@ -52,6 +51,7 @@ int main(int argc, char **argv) {
     log_mempools();
     log_blockchains();
     log_statistics();
+    cout << "Total " << Block::cnt << " blocks in the system." << endl;
 
     return 0;
 }

@@ -40,7 +40,7 @@ void create_topology(int node_cnt) {
             int peer;
             do {
                 peer = random_int(0, nodes->size());
-            } while(nodes->at(peer).peers.size() >= MAX_DEGREE);
+            } while(nodes->at(peer).peers.size() >= MAX_DEGREE || peer == node.id);
 
             connect_nodes(node.id, peer);
         }
@@ -107,17 +107,6 @@ ostream &operator<<(ostream &out, const Node &node) {
 
 
 /* Create a new block, and send it to the peers */
-void add_block(int n_id, Block *blk) {
-    // push first 1023 txns from mem_pool to blk
-    Node &node = nodes->at(n_id);
-    for(int i=0; i<1023; i++)
-    {
-        blk->txn_list.push_back(node.mem_pool.front());
-        node.mem_pool.pop_front();
-    }
-    // node.blockchain.add(blk);
-}
-
 void Node::mine_block_event(Block *prev) {
     if(blockchain->get_last_blk() != prev)
     {
@@ -127,8 +116,8 @@ void Node::mine_block_event(Block *prev) {
 
     Block *blk = create_block();
     add_block(blk);
-    broadcast(blk);
-    // broadcast(blk->get_hash());
+    // broadcast(blk);
+    broadcast(blk->get_hash());
     mining = false;
 }
 
@@ -155,20 +144,34 @@ void Node::hash_recv_event(string hash, int sender) {
     }
 
     // 3. Else - add the hash to pending requests and send the BlockRecv request
+    request(hash, sender);
     wait_list[hash].push_back(sender);
+}
+
+void Node::request(string hash, int sender) const {
     clock_time latency = get_latency(sender, 64);
     event_queue.push(new BlockGetReqEvent(global_time + latency, sender, hash, id));        // sending "get" request to the sender node
-    event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time 
+    event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time     
 }
 
 void Node::timeout_event(string hash, int sender) {
-    wait_list.at(hash).remove(sender);
-    if(wait_list.at(hash).empty())
+    // 1. If block is received, then erase the queue and return.
+    if(blockchain->contains_hash(hash))         
+    {
         wait_list.erase(hash);
+        return;
+    }
+    
+    // 2. Pop the next peer from queue, and send it the get request
+    if(wait_list[hash].empty())
+        return;
+    int next = wait_list[hash].back();
+    wait_list[hash].pop_back();
+    request(hash, next);
 }
 
-void Node::block_get_event(int peer, string hash) {
-    send(blockchain->get_blk(hash), peer);
+void Node::block_get_event(int sender, string hash) {
+    send(blockchain->get_blk(hash), sender);
 }
 
 void Node::reset_mempool() {
@@ -184,6 +187,7 @@ void Node::add_block(Block *blk) {
     blockchain->insert(blk);
     if(blk == blockchain->get_last_blk())
         reset_mempool();
+    cout << "node " << id << " hash " << blockchain->blocks.size() << " blocks." << endl;
 }
 
 void Node::block_recv_event(Block *blk) {    
@@ -193,8 +197,8 @@ void Node::block_recv_event(Block *blk) {
         return;
     }
     add_block(blk);
-    broadcast(blk);
-    // broadcast(blk->get_hash());
+    // broadcast(blk);
+    broadcast(blk->get_hash());
 }
 
 
