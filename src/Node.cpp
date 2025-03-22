@@ -99,7 +99,7 @@ ostream &operator<<(ostream &out, const Node &node) {
     out << "\tid : " << node.id << endl;
     out << "\tmalicious : " << node.malicious << endl;
     out << "\tpeers : " << node.peers << endl;
-    out << "\tbalance : " << node.blockchain->get_last_blk()->balance << endl;
+    out << "\tbalance : " << node.blockchain->get_last_blk()->balance.at(node.id) << endl;
     out << "\tlast-block: " << node.blockchain->get_last_blk()->id << " " << endl;
     out << "}" << endl;
     return out;
@@ -118,7 +118,7 @@ void add_block(int n_id, Block *blk) {
     // node.blockchain.add(blk);
 }
 
-void Node::mine_block(Block *prev) {
+void Node::mine_block_event(Block *prev) {
     if(blockchain->get_last_blk() != prev)
     {
         mining = false;
@@ -142,7 +142,7 @@ void Node::send(string hash, int peer) const {
     event_queue.push(new HashRecvEvent(global_time + latency, peer, hash, id));
 }
 
-void Node::hash_recv(string hash, int sender) {
+void Node::hash_recv_event(string hash, int sender) {
     // 1. If the corresponding block is received already, discard and return.
     if(blockchain->contains_hash(hash))
         return;
@@ -161,15 +161,14 @@ void Node::hash_recv(string hash, int sender) {
     event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time 
 }
 
-void Node::timeout(string hash, int sender) {
+void Node::timeout_event(string hash, int sender) {
     wait_list.at(hash).remove(sender);
     if(wait_list.at(hash).empty())
         wait_list.erase(hash);
 }
 
-void Node::send_blk(int peer, string hash) {
-    clock_time latency = get_latency(peer, pow(2, 20));
-    event_queue.push(new BlockRecvEvent(global_time + latency, peer, blockchain->get_blk(hash)));
+void Node::block_get_event(int peer, string hash) {
+    send(blockchain->get_blk(hash), peer);
 }
 
 void Node::reset_mempool() {
@@ -187,7 +186,7 @@ void Node::add_block(Block *blk) {
         reset_mempool();
 }
 
-void Node::block_recv(Block *blk) {    
+void Node::block_recv_event(Block *blk) {    
     if(!blockchain->contains(blk->prev_blk) || blockchain->contains(blk))
     {
         mining = false;
@@ -199,22 +198,21 @@ void Node::block_recv(Block *blk) {
 }
 
 
-void transaction_send(int n_id) {
-    Node &node = nodes->at(n_id);
-    float bal = node.balance[n_id];
-    Transaction *txn = new Transaction(n_id, random_int(0, nodes->size()), random_float(0, bal));
-    node.add_txn(txn);
-    node.broadcast(txn);
-    node.start_mining();
+void Node::txn_send_event() {
+    float bal = balance[id];
+    Transaction *txn = new Transaction(id, random_int(0, nodes->size()), random_float(0, bal));
+    add_txn(txn);
+    broadcast(txn);
+    start_mining();
 }
 
-void transaction_recv(int n_id, Transaction *txn) {
-    Node &node = nodes->at(n_id);
-    if(!node.is_valid(txn) || node.visited(txn))
+void Node::txn_recv_event(Transaction *txn) {
+
+    if(!is_valid(txn) || visited(txn))
         return;
-    node.add_txn(txn);
-    node.broadcast(txn);
-    node.start_mining();
+    add_txn(txn);
+    broadcast(txn);
+    start_mining();
 }
 
 void Node::add_txn(Transaction *txn) {

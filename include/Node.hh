@@ -32,26 +32,30 @@ struct Node
 
     Node(bool malicious, Block *gen);
     void add_txn(Transaction *txn);
-    void start_mining();
     bool visited(Transaction *txn) const;
     bool is_valid(Transaction *txn) const;
     void broadcast(Transaction *txn) const;
     void send(Transaction *txn, int peer) const;
+    
+    void start_mining();
     void reset_mempool();
 
     Block *create_block();
     void add_block(Block *blk);
     void broadcast(Block *blk) const;
     void send(Block *blk, int peer) const;
-    void mine_block(Block* prev);
-    void block_recv(Block *blk);
-
+    
     void broadcast(string hash) const;
     void send(string hash, int peer) const;
-    void hash_recv(string hash, int sender);
-    void timeout(string hash, int sender);
-    void send_blk(int peer, string hash);
-
+    
+    void txn_send_event();
+    void txn_recv_event(Transaction *txn);
+    void mine_block_event(Block* prev);
+    void block_recv_event(Block *blk);
+    void block_get_event(int peer, string hash);
+    void hash_recv_event(string hash, int sender);
+    void timeout_event(string hash, int sender);
+    
     clock_time get_latency(int peer, int size) const;
     double h_fraction() const;
 
@@ -67,7 +71,5 @@ void visit_dfs(int curr, vector<bool> &visited);
 void print_edges();
 
 
-void transaction_send(int n_id);
-void transaction_recv(int n_id, Transaction *txn);
 
 #endif

@@ -129,7 +129,7 @@ void process_event(Event *ev) {
         TxnSendEvent *s_ev = (TxnSendEvent*)ev;
 
         /* Create a new Transaction and broadcast it to peer nodes */
-        transaction_send(s_ev->n_id);
+        node.txn_send_event();
 
         /* Adding next send event to the queue.*/
         event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), ev->n_id));
@@ -140,7 +140,7 @@ void process_event(Event *ev) {
         TxnRecvEvent *s_ev = (TxnRecvEvent*)ev;
         
         /* If txn is new, mark it visited and forward to peer nodes */
-        transaction_recv(s_ev->n_id, s_ev->txn);
+        node.txn_recv_event(s_ev->txn);
         return;
     }
     if(typeid(*ev) == typeid(BlockMinedEvent))
@@ -149,7 +149,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         /* If the mined block is still valid, add it to blockchain and forward to peer nodes */
-        node.mine_block(s_ev->prev);
+        node.mine_block_event(s_ev->prev);
         return;
     }
     if(typeid(*ev) == typeid(HashRecvEvent))
@@ -157,7 +157,7 @@ void process_event(Event *ev) {
         HashRecvEvent *s_ev = (HashRecvEvent*)ev;
         log_event(s_ev);
 
-        node.hash_recv(s_ev->hash, s_ev->sender);
+        node.hash_recv_event(s_ev->hash, s_ev->sender);
         return;
     }
     if(typeid(*ev) == typeid(BlockGetReqEvent))
@@ -166,7 +166,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
         
         /* A node upon getting this event, sends the block to requesting node. */
-        node.send_blk(s_ev->n_id, s_ev->hash);
+        node.block_get_event(s_ev->n_id, s_ev->hash);
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent))
@@ -175,7 +175,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         /* If received block is valid, add it to blockchain and forward to peer nodes */
-        node.block_recv(s_ev->blk);
+        node.block_recv_event(s_ev->blk);
         return;
     }
     if(typeid(*ev) == typeid(TimeOutEvent))
@@ -183,7 +183,7 @@ void process_event(Event *ev) {
         TimeOutEvent *s_ev = (TimeOutEvent*)ev;
         log_event(s_ev);
 
-        node.timeout(s_ev->hash, s_ev->sender);
+        node.timeout_event(s_ev->hash, s_ev->sender);
         return;
     }
 }
