@@ -57,6 +57,32 @@ struct BlockRecvEvent : public Event
 
 };
 
+struct TimeOutEvent : public Event
+{
+    string hash;
+
+    TimeOutEvent(clock_time t, int n, string hash);
+    void test();
+    // todo: void to_string(ostream &os) const;
+};
+
+struct HashRecvEvent : public Event
+{
+    string hash;
+
+    HashRecvEvent(clock_time t, int n, string hash);
+    void test();
+    // todo: void to_string(ostream &os) const;
+};
+
+struct BlockGetRequest : public Event 
+{
+    string hash;
+
+    BlockGetRequest(clock_time t, int n, string hash);
+    void test();
+    // todo: void to_string(ostream &os) const;
+};
 
 void process_event(Event*);
 

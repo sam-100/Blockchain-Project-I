@@ -8,7 +8,7 @@
 
 using namespace std;
 
-
+/* Event */
 Event::Event(clock_time ts, int n) : timestamp(ts), n_id(n) {};
 
 bool compare_events::operator()(const Event *ev1, const Event *ev2) {
@@ -20,6 +20,7 @@ ostream &operator<<(ostream &os, const Event *ev) {
     return os;
 }
 
+/* Transaction Send Event */
 TxnSendEvent::TxnSendEvent(clock_time timestamp, int n_id) : Event(timestamp, n_id) {}
 
 ostream &operator<<(ostream &os, const TxnSendEvent *ev) {
@@ -36,6 +37,8 @@ void TxnSendEvent::to_string(ostream &os) const {
     os << "}";
 }
 
+
+/* Transaction Receive Event */
 TxnRecvEvent::TxnRecvEvent(clock_time timestamp, int n_id, Transaction *txn) : Event(timestamp, n_id) {
     this->txn = txn;
 }
@@ -50,7 +53,7 @@ void TxnRecvEvent::to_string(ostream &os) const {
     os << "}";
 }
 
-
+/* Block Mined Event */
 BlockMinedEvent::BlockMinedEvent(clock_time t, int n, Block *p) : Event(t, n) {
     prev = p;
 }
@@ -65,6 +68,8 @@ void BlockMinedEvent::to_string(ostream &os) const {
 
 void BlockMinedEvent::test() {};
 
+
+/* Block Receive Event */
 BlockRecvEvent::BlockRecvEvent(clock_time t, int n, Block *blk) : Event(t, n) {
     this->blk = blk;
 }
@@ -77,6 +82,27 @@ void BlockRecvEvent::to_string(ostream &os) const {
     os << "blk_id: " << blk->id << " ";
     os << "}";
 }
+
+/* Time Out Event */
+TimeOutEvent::TimeOutEvent(clock_time t, int n, string h) : Event(t, n) {
+    hash = h;
+}
+void TimeOutEvent::test() {}
+
+/* Hash Received Event */
+HashRecvEvent::HashRecvEvent(clock_time t, int n, string h) : Event(t, n) {
+    hash = h;
+}
+void HashRecvEvent::test() {}
+
+/* Block Get Request */
+BlockGetRequest::BlockGetRequest(clock_time t, int n, string h) : Event(t, n) {
+    hash = h;
+}
+void BlockGetRequest::test() {}
+
+
+/* Process event function */
 
 void process_event(Event *ev) {
     global_time = ev->timestamp;
@@ -106,7 +132,7 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         /* If the mined block is still valid, add it to blockchain and forward to peer nodes */
-        mine_block(s_ev->n_id, s_ev->prev);
+        node.mine_block(s_ev->prev);
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent))
@@ -115,8 +141,28 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         /* If received block is valid, add it to blockchain and forward to peer nodes */
-        block_recv(s_ev->n_id, s_ev->blk);
-        
+        node.block_recv(s_ev->blk);
+        return;
+    }
+    if(typeid(*ev) == typeid(HashRecvEvent))
+    {
+        HashRecvEvent *s_ev = (HashRecvEvent*)ev;
+        log_event(s_ev);
+
+        return;
+    }
+    if(typeid(*ev) == typeid(BlockGetRequest))
+    {
+        BlockGetRequest *s_ev = (BlockGetRequest*)ev;
+        log_event(s_ev);
+
+        return;
+    }
+    if(typeid(*ev) == typeid(TimeOutEvent))
+    {
+        TimeOutEvent *s_ev = (TimeOutEvent*)ev;
+        log_event(s_ev);
+
         return;
     }
 }

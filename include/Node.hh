@@ -39,6 +39,9 @@ struct Node
     Block *create_block();
     void add_block(Block *blk);
     void forward(Block *blk) const;
+    void mine_block(Block* prev);
+    void block_recv(Block *blk);
+    void forward(string hash);
 
     clock_time get_latency(int peer, int size) const;
     double h_fraction() const;
@@ -53,9 +56,7 @@ void print_network();
 void connect_nodes(int node_this, int node_that);
 void visit_dfs(int curr, vector<bool> &visited);
 void print_edges();
-void mine_block(int n_id, Block* prev);
-void block_recv(int n_id, Block *blk);
-void forward_blk(int n_id, Block* blk);
+
 
 void transaction_send(int n_id);
 void transaction_recv(int n_id, Transaction *txn);

@@ -99,7 +99,7 @@ ostream &operator<<(ostream &out, const Node &node) {
     out << "\tid : " << node.id << endl;
     out << "\tmalicious : " << node.malicious << endl;
     out << "\tpeers : " << node.peers << endl;
-    out << "\tbalance : " << node.balance << endl;
+    out << "\tbalance : " << node.blockchain->get_last_blk()->balance << endl;
     out << "\tlast-block: " << node.blockchain->get_last_blk()->id << " " << endl;
     out << "}" << endl;
     return out;
@@ -143,18 +143,17 @@ void add_block(int n_id, Block *blk) {
     // node.blockchain.add(blk);
 }
 
-void mine_block(int n_id, Block *prev) {
-    Node &node = nodes->at(n_id);
-    if(node.blockchain->get_last_blk() != prev)
+void Node::mine_block(Block *prev) {
+    if(blockchain->get_last_blk() != prev)
     {
-        node.mining = false;
+        mining = false;
         return;
     }
 
-    Block *blk = node.create_block();
-    node.add_block(blk);
-    node.forward(blk);
-    node.mining = false;
+    Block *blk = create_block();
+    add_block(blk);
+    forward(blk);
+    mining = false;
 }
 
 void Node::reset_mempool() {
@@ -172,32 +171,16 @@ void Node::add_block(Block *blk) {
         reset_mempool();
 }
 
-void block_recv(int n_id, Block *blk) {
-    Node &node = nodes->at(n_id);
-    
-    if(!node.blockchain->contains(blk->prev_blk) || node.blockchain->contains(blk))
+void Node::block_recv(Block *blk) {    
+    if(!blockchain->contains(blk->prev_blk) || blockchain->contains(blk))
     {
-        node.mining = false;
+        mining = false;
         return;
     }
-
-    node.add_block(blk);
-    node.forward(blk);
-
-
+    add_block(blk);
+    forward(blk);
 }
 
-
-void forward_blk(int n_id, Block* blk) {
-    Node &node = nodes->at(n_id);
-    if(node.blockchain->get_last_blk() != blk->prev_blk) 
-        return;
-    if(node.blockchain->contains(blk))
-        return;
-    add_block(n_id, blk);
-    for(int peer : node.peers)
-        event_queue.push(new BlockRecvEvent(global_time+10, peer, blk));    
-}
 
 void transaction_send(int n_id) {
     Node &node = nodes->at(n_id);

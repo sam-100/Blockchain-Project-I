@@ -4,6 +4,7 @@
 #include "Declarations.hh"
 #include <vector>
 #include <ostream>
+#include <string>
 
 using namespace std;
 
@@ -11,6 +12,7 @@ struct Block
 {
     int id;
     Block* prev_blk;
+    string prev_hash;
     int height;
     clock_time timestamp;
     vector<currency> balance;
@@ -21,6 +23,7 @@ struct Block
     Block(Block* prev, int n_id);
     void add_txn(Transaction *txn);
     int prev_id() const;
+    string get_hash() const;
     friend ostream &operator<<(ostream &os, const Block *blk);
 };
 
