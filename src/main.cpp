@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     // 3. While Queue is not empty, do:
     //     3.1. pop first event from the queue
     //     3.2. process the first event
-    while(!event_queue.empty() && Block::cnt < 100)
+    while(!event_queue.empty() && Block::cnt < STOP_PARAMETER)
     {
         Event *ev = event_queue.top();
         event_queue.pop();

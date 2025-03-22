@@ -7,6 +7,7 @@
 #define BLOCK_SIZE 1024
 #define BLOCK_REWARD 50
 #define BLOCK_INTV_TIME 600
+#define STOP_PARAMETER 50
 
 using namespace std;
 
