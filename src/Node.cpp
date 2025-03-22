@@ -11,10 +11,9 @@ using namespace std;
 
 int Node::cnt = 0;
 
-Node::Node(bool low, bool slow, Block *gen) {
+Node::Node(bool malicious, Block *gen) {
     id = cnt++;
-    this->low = low;
-    this->slow = slow;
+    this->malicious = malicious;
     this->mining = false;
     balance = vector<currency>(num_peers, 100);
     genesis = gen;
@@ -26,7 +25,7 @@ void create_topology(int node_cnt) {
     Block *genesis = new Block(nullptr, -1);
     for(int i=0; i<node_cnt; i++)
     {
-        Node node(random_int(0, 100) <= low, random_int(0, 100) <= slow, genesis);
+        Node node(random_int(0, 100) < malicious, genesis);
         nodes->push_back(node);
     }
     
@@ -98,8 +97,7 @@ void print_edges() {
 ostream &operator<<(ostream &out, const Node &node) {
     out << "Node {" << endl;
     out << "\tid : " << node.id << endl;
-    out << "\tlow : " << node.low << endl;
-    out << "\tslow : " << node.slow << endl;
+    out << "\tmalicious : " << node.malicious << endl;
     out << "\tpeers : " << node.peers << endl;
     out << "\tbalance : " << node.balance << endl;
     out << "\tlast-block: " << node.blockchain->get_last_blk()->id << " " << endl;
@@ -236,11 +234,7 @@ void Node::start_mining() {
 }
 
 double Node::h_fraction() const {
-    double hp = low ? 1 : 10;
-    double thp = 0;
-    for(Node node : *nodes)
-        thp += node.low ? 1 : 10;
-    return hp/thp;
+    return (double)1/(double)num_peers;
 }
 
 void Node::forward(Transaction *txn) const {
@@ -280,9 +274,8 @@ Block *Node::create_block() {
 
 clock_time Node::get_latency(int peer, int size) const {
     clock_time pd = prop_delay[id][peer];
-    double link_speed = ((nodes->at(peer).slow || slow) ? 5 : 100)*pow(2, 20);
+    double link_speed = ((nodes->at(peer).malicious && malicious) ? 100 : 5)*pow(2, 20);
     clock_time q_delay = random_exp_float(96*pow(2, 10)/link_speed);
-    
     return pd + size/link_speed + q_delay;
 }
 

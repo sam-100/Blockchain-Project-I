@@ -9,7 +9,7 @@
 using namespace std;
 
 vector<Node> *nodes;
-float slow, low;
+float malicious;
 clock_time avg_send;
 clock_time global_time;
 int num_peers;
@@ -18,15 +18,14 @@ vector<vector<double>> prop_delay;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
-    if(argc != 5)
+    if(argc != 4)
     {
-        cout << "Usage: " << argv[0] << " " << "<num_of_peers> <slow> <low> <avg_send>" << endl;
+        cout << "Usage: " << argv[0] << " " << "<num_of_peers> <malicious> <avg_send>" << endl;
         return 1;
     }
     num_peers = atoi(argv[1]);
-    low = atof(argv[2]);
-    slow = atof(argv[3]);
-    avg_send = atof(argv[4]);
+    malicious = atoi(argv[2]);
+    avg_send = atof(argv[3]);
 
     // 2. Create and initialize objects 
     prop_delay.resize(num_peers, vector<clock_time>(num_peers, 0));

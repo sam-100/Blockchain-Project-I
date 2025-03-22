@@ -16,8 +16,7 @@ using namespace std;
 struct Node
 {
     int id;
-    bool low;
-    bool slow;
+    bool malicious;
     bool mining;
     clock_time p_delay;
     std::unordered_set<int> peers;
@@ -29,7 +28,7 @@ struct Node
     
     static int cnt;
 
-    Node(bool low, bool slow, Block *gen);
+    Node(bool malicious, Block *gen);
     void add_txn(Transaction *txn);
     void start_mining();
     bool visited(Transaction *txn) const;

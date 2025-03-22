@@ -65,15 +65,13 @@ void log_blockchains() {
 }
 
 void log_statistics() {
-    int low = 0, slow = 0;
+    int malicious_cnt = 0;
     for(Node node : *nodes) {
-        low += node.low;
-        slow += node.slow;
+        malicious_cnt += node.malicious;
     }
     
     ofstream file("log/stats");
     file << "-------------------------*** Network statistics ***-------------------------" << endl;
-    file << "Low-cpu nodes: " << low << "/" << num_peers << " (" << (low*100)/num_peers << "% ) " << endl;
-    file << "Slow-link nodes: " << slow << "/" << num_peers << " (" << (slow*100)/num_peers << "% ) " << endl;
+    file << "Malicious nodes: " << malicious_cnt << "/" << num_peers << " (" << (malicious_cnt*100)/num_peers << "% ) " << endl;
     file.close();
 }
