@@ -10,11 +10,12 @@ using namespace std;
 
 /* Event */
 Event::Event(clock_time ts, int n) : timestamp(ts), n_id(n) {};
-
+void Event::to_string(ostream &os) const {
+    os << this << endl;
+}
 bool compare_events::operator()(const Event *ev1, const Event *ev2) {
     return ev1->timestamp > ev2->timestamp;
 }
-
 ostream &operator<<(ostream &os, const Event *ev) {
     ev->to_string(os);
     return os;
@@ -22,14 +23,7 @@ ostream &operator<<(ostream &os, const Event *ev) {
 
 /* Transaction Send Event */
 TxnSendEvent::TxnSendEvent(clock_time timestamp, int n_id) : Event(timestamp, n_id) {}
-
-ostream &operator<<(ostream &os, const TxnSendEvent *ev) {
-    
-    return os;
-}
-
 void TxnSendEvent::test() {}
-
 void TxnSendEvent::to_string(ostream &os) const {
     os << "TxnSendEvent " << "{";
     os << "n_id : " << n_id << ", ";
@@ -42,9 +36,7 @@ void TxnSendEvent::to_string(ostream &os) const {
 TxnRecvEvent::TxnRecvEvent(clock_time timestamp, int n_id, Transaction *txn) : Event(timestamp, n_id) {
     this->txn = txn;
 }
-
 void TxnRecvEvent::test() {};
-
 void TxnRecvEvent::to_string(ostream &os) const {
     os << "TxnRecvEvent " << "{";
     os << "n_id : " << n_id << ", ";
@@ -57,7 +49,6 @@ void TxnRecvEvent::to_string(ostream &os) const {
 BlockMinedEvent::BlockMinedEvent(clock_time t, int n, Block *p) : Event(t, n) {
     prev = p;
 }
-
 void BlockMinedEvent::to_string(ostream &os) const {
     os << "BlockMinedEvent " << "{";
     os << "n_id : " << n_id << ", ";
@@ -65,7 +56,6 @@ void BlockMinedEvent::to_string(ostream &os) const {
     os << "prev_id: " << prev->id << " ";
     os << "}";
 }
-
 void BlockMinedEvent::test() {};
 
 
@@ -73,7 +63,6 @@ void BlockMinedEvent::test() {};
 BlockRecvEvent::BlockRecvEvent(clock_time t, int n, Block *blk) : Event(t, n) {
     this->blk = blk;
 }
-
 void BlockRecvEvent::test() {};
 void BlockRecvEvent::to_string(ostream &os) const {
     os << "BlockRecvEvent " << "{";
@@ -84,22 +73,50 @@ void BlockRecvEvent::to_string(ostream &os) const {
 }
 
 /* Time Out Event */
-TimeOutEvent::TimeOutEvent(clock_time t, int n, string h) : Event(t, n) {
+TimeOutEvent::TimeOutEvent(clock_time t, int n, string h, int s) : Event(t, n) {
     hash = h;
+    sender = s;
 }
 void TimeOutEvent::test() {}
+void TimeOutEvent::to_string(ostream &os) const {
+    os << "TimeOutEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "hash : " << hash << ", ";
+    os << "sender : " << sender << " ";
+    os << "}";
+}
+
 
 /* Hash Received Event */
-HashRecvEvent::HashRecvEvent(clock_time t, int n, string h) : Event(t, n) {
+HashRecvEvent::HashRecvEvent(clock_time t, int n, string h, int s) : Event(t, n) {
     hash = h;
+    sender = s;
 }
 void HashRecvEvent::test() {}
+void HashRecvEvent::to_string(ostream &os) const {
+    os << "HashRecvEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "hash : " << hash << ", ";
+    os << "sender : " << sender << " ";
+    os << "}";
+}
 
 /* Block Get Request */
-BlockGetRequest::BlockGetRequest(clock_time t, int n, string h) : Event(t, n) {
+BlockGetReqEvent::BlockGetReqEvent(clock_time t, int n, string h, int s) : Event(t, n) {
     hash = h;
+    sender = s;
 }
-void BlockGetRequest::test() {}
+void BlockGetReqEvent::test() {}
+void BlockGetReqEvent::to_string(ostream &os) const {
+    os << "BlockGetReqEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "hash : " << hash << ", ";
+    os << "sender : " << sender << " ";
+    os << "}";
+}
 
 
 /* Process event function */
@@ -135,6 +152,23 @@ void process_event(Event *ev) {
         node.mine_block(s_ev->prev);
         return;
     }
+    if(typeid(*ev) == typeid(HashRecvEvent))
+    {
+        HashRecvEvent *s_ev = (HashRecvEvent*)ev;
+        log_event(s_ev);
+
+        node.hash_recv(s_ev->hash, s_ev->sender);
+        return;
+    }
+    if(typeid(*ev) == typeid(BlockGetReqEvent))
+    {
+        BlockGetReqEvent *s_ev = (BlockGetReqEvent*)ev;
+        log_event(s_ev);
+        
+        /* A node upon getting this event, sends the block to requesting node. */
+        node.send_blk(s_ev->n_id, s_ev->hash);
+        return;
+    }
     if(typeid(*ev) == typeid(BlockRecvEvent))
     {
         BlockRecvEvent *s_ev = (BlockRecvEvent*)ev;
@@ -144,25 +178,12 @@ void process_event(Event *ev) {
         node.block_recv(s_ev->blk);
         return;
     }
-    if(typeid(*ev) == typeid(HashRecvEvent))
-    {
-        HashRecvEvent *s_ev = (HashRecvEvent*)ev;
-        log_event(s_ev);
-
-        return;
-    }
-    if(typeid(*ev) == typeid(BlockGetRequest))
-    {
-        BlockGetRequest *s_ev = (BlockGetRequest*)ev;
-        log_event(s_ev);
-
-        return;
-    }
     if(typeid(*ev) == typeid(TimeOutEvent))
     {
         TimeOutEvent *s_ev = (TimeOutEvent*)ev;
         log_event(s_ev);
 
+        node.timeout(s_ev->hash, s_ev->sender);
         return;
     }
 }

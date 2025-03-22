@@ -13,7 +13,7 @@ struct Event
 
     Event(clock_time t, int n);
     virtual void test() = 0;
-    virtual void to_string(ostream &os) const = 0;
+    virtual void to_string(ostream &os) const;
     friend ostream &operator<<(ostream &os, const Event *ev);
 };
 
@@ -60,29 +60,36 @@ struct BlockRecvEvent : public Event
 struct TimeOutEvent : public Event
 {
     string hash;
+    int sender;
 
-    TimeOutEvent(clock_time t, int n, string hash);
+    TimeOutEvent(clock_time t, int n, string hash, int sender);
     void test();
-    // todo: void to_string(ostream &os) const;
+    void to_string(ostream &os) const;
 };
 
 struct HashRecvEvent : public Event
 {
     string hash;
+    int sender;
 
-    HashRecvEvent(clock_time t, int n, string hash);
+    HashRecvEvent(clock_time t, int n, string hash, int sender);
     void test();
-    // todo: void to_string(ostream &os) const;
+    void to_string(ostream &os) const;
 };
 
-struct BlockGetRequest : public Event 
+struct BlockGetReqEvent : public Event 
 {
     string hash;
+    int sender;
 
-    BlockGetRequest(clock_time t, int n, string hash);
+    BlockGetReqEvent(clock_time t, int n, string hash, int sender);
     void test();
-    // todo: void to_string(ostream &os) const;
+    void to_string(ostream &os) const;
 };
+
+
+
+
 
 void process_event(Event*);
 

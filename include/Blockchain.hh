@@ -3,7 +3,9 @@
 
 #include "Block.hh"
 #include <unordered_set>
+#include <unordered_map>
 #include <ostream>
+#include <string>
 
 using namespace std;
 
@@ -11,11 +13,14 @@ struct Blockchain
 {
     unordered_set<Block*> blocks;
     unordered_set<Block*> tail_blks;
+    unordered_map<string, Block*> visited_hash;
 
     Blockchain(Block *genesis);
     void insert(Block *blk);
     Block *get_last_blk();
+    Block *get_blk(string hash);
     bool contains(Block *blk) const;
+    bool contains_hash(string hash) const;
     friend ostream &operator<<(ostream &os, const Blockchain *bc);
 };
 

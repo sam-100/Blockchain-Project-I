@@ -105,31 +105,6 @@ ostream &operator<<(ostream &out, const Node &node) {
     return out;
 }
 
-void forward_txn(int n_id, Transaction *txn) {
-    Node &node = nodes->at(n_id);
-    if(node.visited_txns.find(txn->id) != node.visited_txns.end())
-        return;
-
-    /* validate the transaction and mark as visited */
-    if(node.balance[txn->sender] < txn->amount)
-        return;
-    node.balance[txn->sender] -= txn->amount;
-    node.balance[txn->receiver] += txn->amount;
-    node.visited_txns.insert(txn->id);
-    node.mem_pool.push_back(txn);
-
-    for(int peer : node.peers)
-        event_queue.push(new TxnRecvEvent(global_time + 10, peer, txn));
-    
-    if(node.mining == false && node.mem_pool.size() >= 1023)
-    {
-        node.mining = true;
-        event_queue.push(new BlockMinedEvent(global_time + 20, n_id, node.blockchain->get_last_blk()));
-    }
-
-    return;    
-}
-
 
 /* Create a new block, and send it to the peers */
 void add_block(int n_id, Block *blk) {
@@ -152,8 +127,49 @@ void Node::mine_block(Block *prev) {
 
     Block *blk = create_block();
     add_block(blk);
-    forward(blk);
+    broadcast(blk);
+    // broadcast(blk->get_hash());
     mining = false;
+}
+
+void Node::broadcast(string hash) const {
+    for(int peer : peers)
+        send(hash, peer);
+}
+
+void Node::send(string hash, int peer) const {
+    clock_time latency = get_latency(peer, 64);
+    event_queue.push(new HashRecvEvent(global_time + latency, peer, hash, id));
+}
+
+void Node::hash_recv(string hash, int sender) {
+    // 1. If the corresponding block is received already, discard and return.
+    if(blockchain->contains_hash(hash))
+        return;
+
+    // 2. If the time-out corresponding to the hash is running, add the node to pending_requests.
+    if(wait_list.find(hash) != wait_list.end())
+    {
+        wait_list[hash].push_back(sender);
+        return;
+    }
+
+    // 3. Else - add the hash to pending requests and send the BlockRecv request
+    wait_list[hash].push_back(sender);
+    clock_time latency = get_latency(sender, 64);
+    event_queue.push(new BlockGetReqEvent(global_time + latency, sender, hash, id));        // sending "get" request to the sender node
+    event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time 
+}
+
+void Node::timeout(string hash, int sender) {
+    wait_list.at(hash).remove(sender);
+    if(wait_list.at(hash).empty())
+        wait_list.erase(hash);
+}
+
+void Node::send_blk(int peer, string hash) {
+    clock_time latency = get_latency(peer, pow(2, 20));
+    event_queue.push(new BlockRecvEvent(global_time + latency, peer, blockchain->get_blk(hash)));
 }
 
 void Node::reset_mempool() {
@@ -178,7 +194,8 @@ void Node::block_recv(Block *blk) {
         return;
     }
     add_block(blk);
-    forward(blk);
+    broadcast(blk);
+    // broadcast(blk->get_hash());
 }
 
 
@@ -187,7 +204,7 @@ void transaction_send(int n_id) {
     float bal = node.balance[n_id];
     Transaction *txn = new Transaction(n_id, random_int(0, nodes->size()), random_float(0, bal));
     node.add_txn(txn);
-    node.forward(txn);
+    node.broadcast(txn);
     node.start_mining();
 }
 
@@ -196,7 +213,7 @@ void transaction_recv(int n_id, Transaction *txn) {
     if(!node.is_valid(txn) || node.visited(txn))
         return;
     node.add_txn(txn);
-    node.forward(txn);
+    node.broadcast(txn);
     node.start_mining();
 }
 
@@ -220,20 +237,24 @@ double Node::h_fraction() const {
     return (double)1/(double)num_peers;
 }
 
-void Node::forward(Transaction *txn) const {
+void Node::broadcast(Transaction *txn) const {
     for(int peer : peers)
-    {
-        clock_time latency = get_latency(peer, pow(2, 10)*8);
-        event_queue.push(new TxnRecvEvent(global_time + latency, id, txn));
-    }
+        send(txn, peer);
 }
 
-void Node::forward(Block *blk) const {
+void Node::send(Transaction *txn, int peer) const {
+    clock_time latency = get_latency(peer, pow(2, 10)*8);
+    event_queue.push(new TxnRecvEvent(global_time + latency, id, txn));
+}
+
+void Node::broadcast(Block *blk) const {
     for(int peer : peers)
-    {
-        clock_time latency = get_latency(peer, pow(2, 20)*8);
-        event_queue.push(new BlockRecvEvent(global_time + latency, peer, blk));
-    }
+        send(blk, peer);
+}
+
+void Node::send(Block *blk, int peer) const {
+    clock_time latency = get_latency(peer, pow(2, 20)*8);
+    event_queue.push(new BlockRecvEvent(global_time + latency, peer, blk));
 }
 
 bool Node::visited(Transaction *txn) const {
@@ -261,6 +282,8 @@ clock_time Node::get_latency(int peer, int size) const {
     clock_time q_delay = random_exp_float(96*pow(2, 10)/link_speed);
     return pd + size/link_speed + q_delay;
 }
+
+
 
 
 // 1. update and validate mem-pool

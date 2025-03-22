@@ -8,11 +8,15 @@ Blockchain::Blockchain(Block *genesis) {
 
 void Blockchain::insert(Block *blk) {
     blocks.insert(blk);
+    visited_hash[blk->get_hash()] = blk;
     if(tail_blks.find(blk->prev_blk) != tail_blks.end())
         tail_blks.erase(blk->prev_blk);
     tail_blks.insert(blk);
 }
 
+Block *Blockchain::get_blk(string hash) {
+    return visited_hash[hash];
+}
 Block *Blockchain::get_last_blk() {
     Block *last_blk = nullptr;
     for(Block *blk : tail_blks)
@@ -29,6 +33,10 @@ Block *Blockchain::get_last_blk() {
 
 bool Blockchain::contains(Block *blk) const {
     return blocks.find(blk) != blocks.end();
+}
+
+bool Blockchain::contains_hash(string hash) const {
+    return visited_hash.find(hash) != visited_hash.end();
 }
 
 ostream &operator<<(ostream &os, const Blockchain *bc) {

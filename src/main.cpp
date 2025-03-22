@@ -10,22 +10,22 @@ using namespace std;
 
 vector<Node> *nodes;
 float malicious;
-clock_time avg_send;
-clock_time global_time;
+clock_time avg_send, global_time, timeout_time;
 int num_peers;
 priority_queue<Event*, vector<Event*>, compare_events> event_queue;
 vector<vector<double>> prop_delay;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
-    if(argc != 4)
+    if(argc != 5)
     {
-        cout << "Usage: " << argv[0] << " " << "<num_of_peers> <malicious> <avg_send>" << endl;
+        cout << "Usage: " << argv[0] << " " << "<num_of_peers> <malicious> <avg_send_time> <timeout_time>" << endl;
         return 1;
     }
     num_peers = atoi(argv[1]);
     malicious = atoi(argv[2]);
     avg_send = atof(argv[3]);
+    timeout_time = atof(argv[4]);
 
     // 2. Create and initialize objects 
     prop_delay.resize(num_peers, vector<clock_time>(num_peers, 0));

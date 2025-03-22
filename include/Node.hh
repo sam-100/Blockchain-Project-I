@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 #include <ostream>
 #include <list>
 #include "Declarations.hh"
@@ -22,6 +23,7 @@ struct Node
     std::unordered_set<int> peers;
     std::vector<currency> balance;
     std::unordered_set<int> visited_txns;
+    std::unordered_map<string, list<int>> wait_list;
     std::list<Transaction*> mem_pool;
     Blockchain *blockchain;
     Block *genesis;
@@ -33,15 +35,22 @@ struct Node
     void start_mining();
     bool visited(Transaction *txn) const;
     bool is_valid(Transaction *txn) const;
-    void forward(Transaction *txn) const;
+    void broadcast(Transaction *txn) const;
+    void send(Transaction *txn, int peer) const;
     void reset_mempool();
 
     Block *create_block();
     void add_block(Block *blk);
-    void forward(Block *blk) const;
+    void broadcast(Block *blk) const;
+    void send(Block *blk, int peer) const;
     void mine_block(Block* prev);
     void block_recv(Block *blk);
-    void forward(string hash);
+
+    void broadcast(string hash) const;
+    void send(string hash, int peer) const;
+    void hash_recv(string hash, int sender);
+    void timeout(string hash, int sender);
+    void send_blk(int peer, string hash);
 
     clock_time get_latency(int peer, int size) const;
     double h_fraction() const;

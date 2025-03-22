@@ -27,8 +27,7 @@ struct Blockchain;
 extern priority_queue<Event*, vector<Event*>, compare_events> event_queue;
 extern vector<Node> *nodes;
 extern float malicious;
-extern clock_time avg_send;
-extern clock_time global_time;
+extern clock_time avg_send, global_time, timeout_time; 
 extern int num_peers;
 extern vector<vector<double>> prop_delay;
 
