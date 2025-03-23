@@ -1,13 +1,13 @@
 1. Honest and Malicious nodes distinction.																		- done
-2. Two step propogation mechanism: hash, data, and timeouts.
-3. Modifications: 
+2. Two step propogation mechanism: hash, data, and timeouts.													- done
+3. Modifications: 																								- done
 	- equal hashing power to all the nodes
 	- malicious nodes fast, honest nodes slow
 	- input_parameters: nodes, percent_malicious_nodes, avg_send_time
 	- choosing the ringmaster node
-4. Eclipse Attack Mechanism: 
+4. Eclipse Attack Mechanism: 																					- done
 	- a malicious node will send hash but with-hold the blocks even after the 'get' request.
-5. Separate Overlay network for malicious nodes.
+5. Separate Overlay network for malicious nodes.																
 
 ### Selfish Mining and Attack Strategy:- 
 1. Private Chain maintainance
