@@ -95,13 +95,13 @@ void print_edges() {
 }
 
 ostream &operator<<(ostream &out, const Node &node) {
-    out << "Node {" << endl;
-    out << "\tid : " << node.id << endl;
-    out << "\tmalicious : " << node.malicious << endl;
-    out << "\tpeers : " << node.peers << endl;
-    out << "\tbalance : " << node.blockchain->get_last_blk()->balance.at(node.id) << endl;
+    out << "Node {" << ", " << endl;
+    out << "\tid : " << node.id << ", " << endl;
+    out << "\tmalicious : " << btoa(node.malicious) << ", " << endl;
+    out << "\tpeers : " << node.peers << ", " << endl;
+    out << "\tbalance : " << node.blockchain->get_last_blk()->balance.at(node.id) << ", " << endl;
     out << "\tlast-block: " << node.blockchain->get_last_blk()->id << ", " << endl;
-    out << "\tforks: " << node.blockchain->tail_blks.size() << " " << endl;
+    out << "\tforks: " << node.blockchain->tail_blks.size() << ", " << endl;
     out << "}" << endl;
     return out;
 }
@@ -172,7 +172,7 @@ void Node::timeout_event(string hash, int sender) {
 }
 
 void Node::block_get_event(int sender, string hash) {
-    if(malicious)
+    if(malicious && !nodes->at(sender).malicious)
         return;
     send(blockchain->get_blk(hash), sender);
 }
@@ -271,7 +271,7 @@ bool Node::is_valid(Transaction *txn) const {
 }
 
 Block *Node::create_block() {
-    Block *blk = new Block(blockchain->get_last_blk(), id);
+    Block *blk = new Block(blockchain->get_last_blk(), id, malicious);
     for(int i=0; i<BLOCK_SIZE; i++)
     {
         blk->add_txn(mem_pool.front());

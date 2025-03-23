@@ -2,14 +2,15 @@
 #define UTILS_HH
 
 #include <vector>
-#include <ostream>
 #include <unordered_set>
 #include <list>
-
+#include <ostream>
+#include <string>
 
 int random_int(int start, int end);
 float random_float(float start, float end);
 float random_exp_float(float mean);
+std::string btoa(bool val);
 
 template <typename T>
 std::ostream &operator<<(std::ostream &out, const std::vector<T> &arr) {
