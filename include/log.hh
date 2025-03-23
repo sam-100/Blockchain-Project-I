@@ -11,4 +11,6 @@ void log_statistics();
 
 void log(const char* file, const char* msg);
 void log_event(Event *ev);
+
+vector<int> eclipsed_nodes();
 #endif

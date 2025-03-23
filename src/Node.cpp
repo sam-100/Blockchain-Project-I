@@ -100,7 +100,8 @@ ostream &operator<<(ostream &out, const Node &node) {
     out << "\tmalicious : " << node.malicious << endl;
     out << "\tpeers : " << node.peers << endl;
     out << "\tbalance : " << node.blockchain->get_last_blk()->balance.at(node.id) << endl;
-    out << "\tlast-block: " << node.blockchain->get_last_blk()->id << " " << endl;
+    out << "\tlast-block: " << node.blockchain->get_last_blk()->id << ", " << endl;
+    out << "\tforks: " << node.blockchain->tail_blks.size() << " " << endl;
     out << "}" << endl;
     return out;
 }
@@ -151,7 +152,7 @@ void Node::hash_recv_event(string hash, int sender) {
 void Node::request(string hash, int sender) const {
     clock_time latency = get_latency(sender, 64);
     event_queue.push(new BlockGetReqEvent(global_time + latency, sender, hash, id));        // sending "get" request to the sender node
-    event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time     
+    event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time
 }
 
 void Node::timeout_event(string hash, int sender) {
@@ -165,12 +166,14 @@ void Node::timeout_event(string hash, int sender) {
     // 2. Pop the next peer from queue, and send it the get request
     if(wait_list[hash].empty())
         return;
-    int next = wait_list[hash].back();
-    wait_list[hash].pop_back();
+    int next = wait_list[hash].front();
+    wait_list[hash].pop_front();
     request(hash, next);
 }
 
 void Node::block_get_event(int sender, string hash) {
+    if(malicious)
+        return;
     send(blockchain->get_blk(hash), sender);
 }
 
@@ -187,7 +190,7 @@ void Node::add_block(Block *blk) {
     blockchain->insert(blk);
     if(blk == blockchain->get_last_blk())
         reset_mempool();
-    cout << "node " << id << " hash " << blockchain->blocks.size() << " blocks." << endl;
+    wait_list.erase(blk->get_hash());
 }
 
 void Node::block_recv_event(Block *blk) {    

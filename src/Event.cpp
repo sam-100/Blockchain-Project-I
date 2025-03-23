@@ -152,7 +152,6 @@ void process_event(Event *ev) {
         BlockMinedEvent *s_ev = (BlockMinedEvent*)ev;
         log_event(s_ev);
 
-        /* If the mined block is still valid, add it to blockchain and forward to peer nodes */
         node.mine_block_event(s_ev->prev);
         return;
     }
@@ -169,7 +168,6 @@ void process_event(Event *ev) {
         BlockGetReqEvent *s_ev = (BlockGetReqEvent*)ev;
         log_event(s_ev);
         
-        /* A node upon getting this event, sends the block to requesting node. */
         node.block_get_event(s_ev->sender, s_ev->hash);
         return;
     }
