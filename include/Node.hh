@@ -36,10 +36,8 @@ struct Node
     bool is_valid(Transaction *txn) const;
     void broadcast(Transaction *txn) const;
     void send(Transaction *txn, int peer) const;
-
-    void start_mining();
-    void reset_mempool();
-
+    
+    
     Block *create_block();
     void add_block(Block *blk);
     void broadcast(Block *blk) const;
@@ -57,6 +55,8 @@ struct Node
     void hash_recv_event(string hash, int sender);
     void timeout_event(string hash, int sender);
     
+    void start_mining();
+    void reset_mempool();
     clock_time get_latency(int peer, int size) const;
     double h_fraction() const;
 
