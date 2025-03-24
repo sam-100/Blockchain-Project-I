@@ -29,6 +29,7 @@ struct Node
     Blockchain *blockchain;
     Block *genesis;
     Block *private_chain;
+    unordered_set<Block*> orphan_blocks;
     
     static int cnt;
 
@@ -44,6 +45,7 @@ struct Node
     void add_block(Block *blk);
     void broadcast(Block *blk) const;
     void send(Block *blk, int peer) const;
+    void update_orphan_list();
     
     void broadcast(string hash) const;
     void send(string hash, int peer) const;
@@ -61,6 +63,8 @@ struct Node
     void reset_mempool();
     clock_time get_latency(int peer, int size) const;
     double h_fraction() const;
+
+    void mine_block_event_m(Block *prev);
 
     friend ostream &operator<<(ostream &out, const Node &node);
 };

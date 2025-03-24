@@ -47,6 +47,15 @@ struct BlockMinedEvent : public Event
     void to_string(ostream &os) const;
 };
 
+struct MaliciousBlockMinedEvent : public Event
+{
+    Block *prev;
+
+    MaliciousBlockMinedEvent(clock_time t, int n, Block *p);
+    void test();
+    void to_string(ostream &os) const;
+};
+
 struct BlockRecvEvent : public Event
 {
     Block *blk;

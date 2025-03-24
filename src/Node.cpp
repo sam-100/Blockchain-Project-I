@@ -133,22 +133,59 @@ void Node::mine_block_event(Block *prev) {
 
     Block *blk = create_block();
     add_block(blk);
-    // broadcast(blk);
+    update_orphan_list();
     broadcast(blk->get_hash());
     mining = false;
 }
 
+void Node::mine_block_event_m(Block *prev) {
+    // if(blockchain->get_last_blk() != prev)
+    // {
+        
+    // }
+}
+
 void Node::block_recv_event(Block *blk) {    
-    if(!blockchain->contains(blk->prev_blk) || blockchain->contains(blk))
+    if(blockchain->contains(blk))
     {
         mining = false;
         return;
     }
+
+    if(!blockchain->contains(blk->prev_blk))
+    {
+        orphan_blocks.insert(blk);
+        mining = false;
+        return;
+    }
+
     if(wait_list.find(blk->get_hash()) != wait_list.end())
         wait_list.erase(blk->get_hash());
     add_block(blk);
-    // broadcast(blk);
+    update_orphan_list();
     broadcast(blk->get_hash());
+}
+
+void Node::update_orphan_list() {
+    while(true)
+    {
+        // 1. select a block from orphan list who's prev is in main blockchain
+        Block *orphan = nullptr;
+        for(Block *blk : orphan_blocks)
+        {
+            if(blockchain->contains(blk->prev_blk))
+            {
+                orphan = blk;
+                break;
+            }
+        }
+        if(orphan == nullptr)
+            return;
+
+        // 2. pop that block and insert it into the main blockchain
+        orphan_blocks.erase(orphan);
+        add_block(orphan);
+    }
 }
 
 void Node::block_get_event(int sender, string hash) {
@@ -226,6 +263,8 @@ clock_time Node::get_latency(int peer, int size) const {
 double Node::h_fraction() const {
     return (double)1/(double)num_peers;
 }
+
+
 
 
 /* Network control and other functions */

@@ -121,6 +121,25 @@ void BlockGetReqEvent::to_string(ostream &os) const {
     os << "}";
 }
 
+/* Malicious Block Mined Event */
+MaliciousBlockMinedEvent::MaliciousBlockMinedEvent(clock_time t, int n, Block *p) : Event(t, n) {
+    prev = p;
+}
+void MaliciousBlockMinedEvent::to_string(ostream &os) const {
+    os << "MaliciousBlockMinedEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp: " << timestamp << ", ";
+    os << "prev: " << prev->id << " ";
+    os << "}";
+}
+void MaliciousBlockMinedEvent::test() {};
+
+
+
+
+
+
+
 
 /* Process event function */
 
@@ -187,5 +206,12 @@ void process_event(Event *ev) {
 
         node.timeout_event(s_ev->hash, s_ev->sender);
         return;
+    }
+    if(typeid(*ev) == typeid(MaliciousBlockMinedEvent))
+    {
+        MaliciousBlockMinedEvent *s_ev = (MaliciousBlockMinedEvent*)s_ev;
+        log_event(s_ev);
+
+        node.mine_block_event_m(s_ev->prev);
     }
 }
