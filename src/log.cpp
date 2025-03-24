@@ -79,6 +79,18 @@ void log_blockchains() {
     }
 }
 
+#include <iostream>
+
+void log_blockchain_graphs() {
+    for(Node node : *nodes)
+    {
+        string filename = "log/blockchain-graph/node-" + to_string(node.id);
+        ofstream file(filename);
+        file << node.blockchain->to_edge_string();
+        file.close();
+    }
+}
+
 void log_statistics() {
     int malicious_cnt = 0;
     int avg_forks = 0;

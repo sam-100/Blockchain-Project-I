@@ -1,6 +1,7 @@
 #include "Blockchain.hh"
 #include "Node.hh"
 #include <iostream>
+#include <sstream>
 
 Blockchain::Blockchain(Block *genesis) {
     insert(genesis);         // genesis block 
@@ -41,6 +42,13 @@ bool Blockchain::contains_hash(string hash) const {
 
 int Blockchain::height() {
     return get_last_blk()->height;
+}
+
+string Blockchain::to_edge_string() const {
+    stringstream ss;
+    for(Block *blk : blocks)
+        ss << blk->id << " " << blk->prev_id() << endl;
+    return ss.str();
 }
 
 ostream &operator<<(ostream &os, const Blockchain *bc) {

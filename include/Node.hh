@@ -28,6 +28,7 @@ struct Node
     std::list<Transaction*> mem_pool;
     Blockchain *blockchain;
     Block *genesis;
+    Block *private_chain;
     
     static int cnt;
 

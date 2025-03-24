@@ -8,6 +8,7 @@ void log_topology_m();
 void log_nodes();
 void log_mempools();
 void log_blockchains();
+void log_blockchain_graphs();
 void log_statistics();
 
 void log(const char* file, const char* msg);

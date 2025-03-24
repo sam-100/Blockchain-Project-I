@@ -5,10 +5,14 @@
 #include <queue>
 #include <unordered_map>
 
-#define BLOCK_SIZE 1024
-#define BLOCK_REWARD 50
-#define BLOCK_INTV_TIME 2
-#define STOP_PARAMETER 50
+#define BLOCK_SIZE 1024     
+#define BLOCK_REWARD 50     
+#ifndef BLOCK_INTV_TIME     
+    #define BLOCK_INTV_TIME 2   
+#endif
+#ifndef STOP_PARAMETER      
+    #define STOP_PARAMETER 50   
+#endif
 
 using namespace std;
 
@@ -33,6 +37,7 @@ extern clock_time avg_send, global_time, timeout_time;
 extern int num_peers;
 extern vector<vector<double>> prop_delay;
 extern unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
+extern bool ringmaster_mining;
 
 
 #endif

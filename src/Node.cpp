@@ -89,6 +89,8 @@ void Node::send(Block *blk, int peer) const {
 void Node::broadcast(string hash) const {
     for(int peer : peers)
         send(hash, peer);
+    for(int peer : peers_m)
+        send(hash, peer);
 }
 
 void Node::send(string hash, int peer) const {
@@ -115,7 +117,6 @@ void Node::txn_send_event() {
 }
 
 void Node::txn_recv_event(Transaction *txn) {
-
     if(!is_valid(txn) || visited(txn))
         return;
     add_txn(txn);
@@ -143,6 +144,8 @@ void Node::block_recv_event(Block *blk) {
         mining = false;
         return;
     }
+    if(wait_list.find(blk->get_hash()) != wait_list.end())
+        wait_list.erase(blk->get_hash());
     add_block(blk);
     // broadcast(blk);
     broadcast(blk->get_hash());
@@ -181,7 +184,10 @@ void Node::timeout_event(string hash, int sender) {
     
     // 2. Pop the next peer from queue, and send it the get request
     if(wait_list[hash].empty())
+    {
+        wait_list.erase(hash);
         return;
+    }
     int next = wait_list[hash].front();
     wait_list[hash].pop_front();
     request(hash, next);
@@ -199,6 +205,7 @@ void Node::start_mining() {
     event_queue.push(new BlockMinedEvent(global_time+mining_time, id, blockchain->get_last_blk()));
 }
 
+
 void Node::reset_mempool() {
     balance = blockchain->get_last_blk()->balance;
     list<Transaction*> buffer = mem_pool;
@@ -209,7 +216,8 @@ void Node::reset_mempool() {
 }
 
 clock_time Node::get_latency(int peer, int size) const {
-    clock_time pd = prop_delay[id][peer];
+    clock_time pd = (malicious && nodes->at(peer).malicious) ? 
+                        prop_delay_m[id][peer] : prop_delay[id][peer];
     double link_speed = ((nodes->at(peer).malicious && malicious) ? 100 : 5)*pow(2, 20);
     clock_time q_delay = random_exp_float(96*pow(2, 10)/link_speed);
     return pd + size/link_speed + q_delay;
@@ -348,7 +356,7 @@ void connect_nodes_m(int i, int j) {
     nodes->at(i).peers_m.insert(j);
     nodes->at(j).peers_m.insert(i);
     
-    clock_time pd = random_float(0.010, 0.050);
+    clock_time pd = random_float(0.001, 0.010);
     prop_delay_m[i][j] = prop_delay_m[j][i] = pd;
 }
 

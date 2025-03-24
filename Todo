@@ -7,11 +7,11 @@
 	- choosing the ringmaster node
 4. Eclipse Attack Mechanism: 																					- done
 	- a malicious node will send hash but with-hold the blocks even after the 'get' request.
-5. Separate Overlay network for malicious nodes.																
+5. Separate Overlay network for malicious nodes.																- done
 
 ### Selfish Mining and Attack Strategy:- 
-1. Private Chain maintainance
-2. Strategic Block release
+1. Private Chain maintainance																					- 
+2. Strategic Block release																						- 
 	- When ringmaster commands broadcast the private chain to all malicious nodes.
 	- The malicious nodes will broadcast this private chain into the honest network.
 	
