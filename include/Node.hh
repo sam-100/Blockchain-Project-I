@@ -21,6 +21,7 @@ struct Node
     bool mining;
     clock_time p_delay;
     std::unordered_set<int> peers;
+    std::unordered_set<int> peers_m;
     std::vector<currency> balance;
     std::unordered_set<int> visited_txns;
     std::unordered_map<string, list<int>> wait_list;
@@ -64,6 +65,7 @@ struct Node
 };
 
 void create_topology(int);
+int select_peer(Node &node);
 void clear_network();
 bool is_connected();
 void print_network();
@@ -71,6 +73,12 @@ void connect_nodes(int node_this, int node_that);
 void visit_dfs(int curr, vector<bool> &visited);
 void print_edges();
 
+void create_topology_m();
+int select_peer_m(Node &node);
+void clear_network_m();
+bool is_connected_m();
+void visit_dfs_m(int, unordered_set<int>&);
+void connect_nodes_m(int i, int j);
 
 
 #endif

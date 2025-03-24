@@ -9,11 +9,13 @@
 using namespace std;
 
 vector<Node> *nodes;
+vector<int> mal_nodes;
 float malicious;
 clock_time avg_send, global_time, timeout_time;
 int num_peers;
 priority_queue<Event*, vector<Event*>, compare_events> event_queue;
 vector<vector<double>> prop_delay;
+unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
@@ -30,9 +32,10 @@ int main(int argc, char **argv) {
     // 2. Create and initialize objects 
     prop_delay.resize(num_peers, vector<clock_time>(num_peers, 0));
     create_topology(num_peers);
+    create_topology_m();
     for(int i=0; i<nodes->size(); i++)
     event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
-    
+    system("find log/* -type f -delete");
     
     // 3. While Queue is not empty, do:
     //     3.1. pop first event from the queue
@@ -48,6 +51,7 @@ int main(int argc, char **argv) {
     // 4. Log the result here.
     log_nodes();
     log_topology();
+    log_topology_m();
     log_mempools();
     log_blockchains();
     log_statistics();

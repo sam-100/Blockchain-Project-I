@@ -4,6 +4,7 @@
 #include "Declarations.hh"
 
 void log_topology();
+void log_topology_m();
 void log_nodes();
 void log_mempools();
 void log_blockchains();

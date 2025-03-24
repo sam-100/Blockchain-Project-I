@@ -20,6 +20,21 @@ void log_topology() {
     file.close();
 }
 
+
+void log_topology_m() {
+    ofstream file("log/topology_m");
+
+    file << "-----------*** The Overlay Network Topology ***-----------------" << endl << endl;
+
+    for(Node node : *nodes) {
+        if(!node.malicious)
+            continue;
+        file << "M_Node " << node.id << ": " << node.peers_m << endl;
+    }
+    file.close();
+}
+
+
 void log_nodes() {
     ofstream file("log/nodes");
 

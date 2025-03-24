@@ -3,6 +3,7 @@
 #include "Transaction.hh"
 #include "Event.hh"
 #include "Block.hh"
+#include "log.hh"
 #include <iostream>
 #include <math.h>
 
@@ -237,12 +238,55 @@ void create_topology(int node_cnt) {
         {
             if(node.peers.size() >= MIN_DEGREE)
                 continue;
-            int peer;
-            do {
-                peer = random_int(0, nodes->size());
-            } while(nodes->at(peer).peers.size() >= MAX_DEGREE || peer == node.id);
-
+            int peer = select_peer(node);
             connect_nodes(node.id, peer);
+        }
+    }
+}
+
+int select_peer(Node &node) {
+    int peer;
+    bool degree_max, is_self;
+    do {
+        peer = random_int(0, nodes->size());
+        degree_max = nodes->at(peer).peers.size() >= MAX_DEGREE;
+        is_self = peer == node.id;
+    } while(degree_max || is_self);
+    return peer;
+}
+
+int select_peer_m(Node &node) {
+    int peer;
+    bool degree_max, is_self, is_malicious;
+    do {
+        peer = random_int(0, nodes->size());
+        degree_max = nodes->at(peer).peers_m.size() >= MAX_DEGREE;
+        is_self = peer == node.id;
+        is_malicious = nodes->at(peer).malicious;
+    } while(degree_max || is_self || !is_malicious);
+    return peer;
+}
+
+
+void create_topology_m() {    
+    for(Node node : *nodes)
+        if(node.malicious)
+            mal_nodes.push_back(node.id);
+    cout << "malicious nodes: " << mal_nodes << endl;
+
+    while(!is_connected_m())
+    {
+        clear_network_m();
+        
+        for(Node node : *nodes)
+        {
+            if(node.malicious == false)
+                continue;
+            if(node.peers_m.size() >= MIN_DEGREE)
+                continue;
+
+            int peer = select_peer_m(node);
+            connect_nodes_m(node.id, peer);
         }
     }
 }
@@ -258,6 +302,14 @@ bool is_connected() {
     return true;
 }
 
+bool is_connected_m() {
+    unordered_set<int> visited;    
+    visit_dfs_m(mal_nodes[0], visited);
+    if(visited.size() == mal_nodes.size())
+        return true;
+    return false;
+}
+
 void visit_dfs(int curr, vector<bool> &visited) {
     visited[curr] = true;
     for(int peer : nodes->at(curr).peers)
@@ -266,9 +318,22 @@ void visit_dfs(int curr, vector<bool> &visited) {
     return;
 }
 
+void visit_dfs_m(int curr, unordered_set<int> &visited) {
+    visited.insert(curr);
+    for(int peer : nodes->at(curr).peers_m)
+        if(visited.find(peer) == visited.end())
+            visit_dfs_m(peer, visited);
+    return;
+}
+
 void clear_network() {
     for(int i=0; i<nodes->size(); i++)
         nodes->at(i).peers.clear();
+}
+
+void clear_network_m() {
+    for(int i=0; i<nodes->size(); i++)
+        nodes->at(i).peers_m.clear();
 }
 
 void connect_nodes(int i, int j) {
@@ -278,6 +343,15 @@ void connect_nodes(int i, int j) {
     clock_time pd = random_float(0.010, 0.500);
     prop_delay[i][j] = prop_delay[j][i] = pd;
 }
+
+void connect_nodes_m(int i, int j) {
+    nodes->at(i).peers_m.insert(j);
+    nodes->at(j).peers_m.insert(i);
+    
+    clock_time pd = random_float(0.010, 0.050);
+    prop_delay_m[i][j] = prop_delay_m[j][i] = pd;
+}
+
 
 void print_network() {
     for(Node node : *nodes) {

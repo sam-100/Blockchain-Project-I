@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <queue>
+#include <unordered_map>
 
 #define BLOCK_SIZE 1024
 #define BLOCK_REWARD 50
@@ -26,10 +27,12 @@ struct Blockchain;
 
 extern priority_queue<Event*, vector<Event*>, compare_events> event_queue;
 extern vector<Node> *nodes;
+extern vector<int> mal_nodes;
 extern float malicious;
 extern clock_time avg_send, global_time, timeout_time; 
 extern int num_peers;
 extern vector<vector<double>> prop_delay;
+extern unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
 
 
 #endif
