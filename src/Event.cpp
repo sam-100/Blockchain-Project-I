@@ -111,7 +111,7 @@ void TimeOutEvent_M::to_string(ostream &os) const {
     os << "TimeOutEvent_M " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
-    os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
+    // os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
     // os << "hash : " << hash << ", ";
     os << "sender : " << sender << " ";
     os << "}";
@@ -144,7 +144,7 @@ void HashRecvEvent_M::to_string(ostream &os) const {
     os << "HashRecvEvent_M " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
-    os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
+    // os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
     // os << "hash : " << hash << ", ";
     os << "sender : " << sender << " ";
     os << "}";
@@ -177,7 +177,7 @@ void BlockGetReqEvent_M::to_string(ostream &os) const {
     os << "BlockGetReqEvent_M " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
-    os << "blk : " << nodes->at(n_id).blockchain->get_blk(hash)->id << ", ";
+    // os << "blk : " << nodes->at(n_id).blockchain->get_blk(hash)->id << ", ";
     // os << "hash : " << hash << ", ";
     os << "sender : " << sender << " ";
     os << "}";

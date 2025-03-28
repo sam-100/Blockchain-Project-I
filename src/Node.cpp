@@ -150,17 +150,21 @@ void Node::txn_recv_event(Transaction *txn) {
 }
 
 void Node::start_mining_event() {
+    if(mining == true)
+        return;
     mining = true;
     clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
     event_queue.push(new BlockMinedEvent(global_time+mining_time, id, blockchain->get_last_blk()));
 }
 
 void Node::start_mining_event_m() {
+    if(ringmaster_mining == true)
+        return;
     ringmaster_mining = true;
     clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
     Block *prev = private_chain->empty() ? blockchain->get_last_blk() : private_chain->get_last_blk();
     event_queue.push(new BlockMinedEvent_M(global_time+mining_time, id, prev));
-    cout << "Malicious node-" << id << " started mining on block " << prev->id << endl;
+    // cout << "Malicious node-" << id << " started mining on block " << prev->id << endl;
 }
 
 void Node::block_mined_event(Block *prev) {
@@ -176,7 +180,7 @@ void Node::block_mined_event(Block *prev) {
 }
 
 void Node::block_mined_event_m(Block *prev) {
-    if(private_chain->get_last_blk() != prev)
+    if(!private_chain->empty() && private_chain->get_last_blk() != prev)
     {
         ringmaster_mining = false;
         return;
@@ -185,7 +189,7 @@ void Node::block_mined_event_m(Block *prev) {
     Block *blk = create_block(prev);
     block_recv_event_m(blk);
     ringmaster_mining = false;
-    cout << "Malicious node-" << id << " successfully mined block " << blk->id << endl;
+    // cout << "Malicious node-" << id << " successfully mined block " << blk->id << endl;
 }
 
 void Node::block_recv_event(Block *blk) {    
