@@ -112,9 +112,7 @@ void Node::request(string hash, int sender) const {
 void Node::txn_send_event() {
     float bal = balance[id];
     Transaction *txn = new Transaction(id, random_int(0, nodes->size()), random_float(0, bal));
-    add_txn(txn);
-    broadcast(txn);
-    start_mining();
+    txn_recv_event(txn);
 }
 
 void Node::txn_recv_event(Transaction *txn) {
@@ -122,8 +120,16 @@ void Node::txn_recv_event(Transaction *txn) {
         return;
     add_txn(txn);
     broadcast(txn);
-    start_mining();
 }
+
+void Node::start_mining_event() {
+    if(mining || mem_pool.size() < BLOCK_SIZE)
+        return;
+    mining = true;
+    clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
+    event_queue.push(new BlockMinedEvent(global_time+mining_time, id, blockchain->get_last_blk()));
+}
+
 
 void Node::mine_block_event(Block *prev) {
     if(blockchain->get_last_blk() != prev)
@@ -133,9 +139,7 @@ void Node::mine_block_event(Block *prev) {
     }
 
     Block *blk = create_block();
-    add_block(blk);
-    update_orphan_list();
-    broadcast(blk->get_hash());
+    block_recv_event(blk);
     mining = false;
 }
 
@@ -235,15 +239,9 @@ void Node::timeout_event(string hash, int sender) {
 /*
     >|------------------------Miscelleneous methods----------------------|<
 */
-void Node::start_mining() {
-    if(mining || mem_pool.size() < BLOCK_SIZE)
-        return;
-    mining = true;
-    clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
-    event_queue.push(new BlockMinedEvent(global_time+mining_time, id, blockchain->get_last_blk()));
+bool Node::is_mining() const {
+    return mining;
 }
-
-
 void Node::reset_mempool() {
     balance = blockchain->get_last_blk()->balance;
     list<Transaction*> buffer = mem_pool;

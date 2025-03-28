@@ -96,6 +96,12 @@ struct BlockGetReqEvent : public Event
     void to_string(ostream &os) const;
 };
 
+struct StartMiningEvent : public Event
+{
+    StartMiningEvent(clock_time t, int n);
+    void test();
+    void to_string(ostream &os) const;
+};
 
 
 

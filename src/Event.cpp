@@ -132,13 +132,17 @@ void MaliciousBlockMinedEvent::to_string(ostream &os) const {
     os << "prev: " << prev->id << " ";
     os << "}";
 }
-void MaliciousBlockMinedEvent::test() {};
+void MaliciousBlockMinedEvent::test() {}
 
-
-
-
-
-
+/* Start Mining Event */
+StartMiningEvent::StartMiningEvent(clock_time t, int n) : Event(t, n) {}
+void StartMiningEvent::test() {}
+void StartMiningEvent::to_string(ostream &os) const {
+    os << "StartMiningEvent" << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << " ";
+    os << "}";
+}
 
 
 /* Process event function */
@@ -164,6 +168,15 @@ void process_event(Event *ev) {
         
         /* If txn is new, mark it visited and forward to peer nodes */
         node.txn_recv_event(s_ev->txn);
+        if(!node.is_mining() && node.mem_pool.size() >= BLOCK_SIZE)
+            event_queue.push(new StartMiningEvent(global_time, node.id));
+        return;
+    }
+    if(typeid(*ev) == typeid(StartMiningEvent))
+    {
+        StartMiningEvent *s_ev = (StartMiningEvent*)ev;
+
+        node.start_mining_event();
         return;
     }
     if(typeid(*ev) == typeid(BlockMinedEvent))

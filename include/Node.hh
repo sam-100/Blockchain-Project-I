@@ -52,13 +52,14 @@ struct Node
     
     void txn_send_event();
     void txn_recv_event(Transaction *txn);
+    void start_mining_event();
     void mine_block_event(Block* prev);
     void block_recv_event(Block *blk);
     void block_get_event(int peer, string hash);
     void hash_recv_event(string hash, int sender);
     void timeout_event(string hash, int sender);
     
-    void start_mining();
+    bool is_mining() const;
     void reset_mempool();
     clock_time get_latency(int peer, int size) const;
     double h_fraction() const;
