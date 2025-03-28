@@ -19,6 +19,7 @@ Node::Node(bool malicious, Block *gen) {
     balance = vector<currency>(num_peers, 100);
     genesis = gen;
     blockchain = new Blockchain(genesis);
+    private_chain = new Blockchain();
 }
 
 

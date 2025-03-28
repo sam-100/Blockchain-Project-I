@@ -26,9 +26,8 @@ struct Node
     std::unordered_set<int> visited_txns;
     std::unordered_map<string, list<int>> wait_list;
     std::list<Transaction*> mem_pool;
-    Blockchain *blockchain;
+    Blockchain *blockchain, *private_chain;
     Block *genesis;
-    Block *private_chain;
     unordered_set<Block*> orphan_blocks;
     
     static int cnt;

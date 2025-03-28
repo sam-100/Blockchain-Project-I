@@ -7,6 +7,10 @@ Blockchain::Blockchain(Block *genesis) {
     insert(genesis);         // genesis block 
 }
 
+Blockchain::Blockchain() {
+    
+}
+
 void Blockchain::insert(Block *blk) {
     blocks.insert(blk);
     visited_hash[blk->get_hash()] = blk;

@@ -15,6 +15,7 @@ struct Blockchain
     unordered_set<Block*> tail_blks;
     unordered_map<string, Block*> visited_hash;
 
+    Blockchain();
     Blockchain(Block *genesis);
     void insert(Block *blk);
     Block *get_last_blk();
