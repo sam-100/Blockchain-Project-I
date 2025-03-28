@@ -123,15 +123,19 @@ void Node::txn_recv_event(Transaction *txn) {
 }
 
 void Node::start_mining_event() {
-    if(mining || mem_pool.size() < BLOCK_SIZE)
-        return;
     mining = true;
     clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
     event_queue.push(new BlockMinedEvent(global_time+mining_time, id, blockchain->get_last_blk()));
 }
 
+void Node::start_mining_event_m() {
+    ringmaster_mining = true;
+    clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
+    Block *prev = private_chain->empty() ? blockchain->get_last_blk() : private_chain->get_last_blk();
+    event_queue.push(new BlockMinedEvent(global_time+mining_time, id, prev));
+}
 
-void Node::mine_block_event(Block *prev) {
+void Node::block_mined_event(Block *prev) {
     if(blockchain->get_last_blk() != prev)
     {
         mining = false;
@@ -141,6 +145,8 @@ void Node::mine_block_event(Block *prev) {
     Block *blk = create_block();
     block_recv_event(blk);
     mining = false;
+    if(id == ringmaster)
+        ringmaster_mining = false;
 }
 
 void Node::mine_block_event_m(Block *prev) {
@@ -240,8 +246,19 @@ void Node::timeout_event(string hash, int sender) {
     >|------------------------Miscelleneous methods----------------------|<
 */
 bool Node::is_mining() const {
+    if(malicious)
+        return ringmaster_mining;
     return mining;
 }
+
+bool Node::can_mine() const {
+    if(mem_pool.size() < BLOCK_SIZE)
+        return false;
+    if(malicious)
+        return ringmaster_mining == false;
+    return mining == false;
+}
+
 void Node::reset_mempool() {
     balance = blockchain->get_last_blk()->balance;
     list<Transaction*> buffer = mem_pool;
@@ -260,7 +277,9 @@ clock_time Node::get_latency(int peer, int size) const {
 }
 
 double Node::h_fraction() const {
-    return (double)1/(double)num_peers;
+    if(!malicious)
+        return (double)1/(double)num_peers;
+    return (double)mal_nodes.size()/(double)num_peers;
 }
 
 

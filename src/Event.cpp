@@ -168,14 +168,20 @@ void process_event(Event *ev) {
         
         /* If txn is new, mark it visited and forward to peer nodes */
         node.txn_recv_event(s_ev->txn);
-        if(!node.is_mining() && node.mem_pool.size() >= BLOCK_SIZE)
+        if(node.can_mine())
             event_queue.push(new StartMiningEvent(global_time, node.id));
         return;
     }
     if(typeid(*ev) == typeid(StartMiningEvent))
     {
         StartMiningEvent *s_ev = (StartMiningEvent*)ev;
-
+        log_event(ev);
+        
+        if(node.id == ringmaster)
+        {
+            node.start_mining_event_m();
+            return;
+        }
         node.start_mining_event();
         return;
     }
@@ -184,7 +190,7 @@ void process_event(Event *ev) {
         BlockMinedEvent *s_ev = (BlockMinedEvent*)ev;
         log_event(s_ev);
 
-        node.mine_block_event(s_ev->prev);
+        node.block_mined_event(s_ev->prev);
         return;
     }
     if(typeid(*ev) == typeid(HashRecvEvent))

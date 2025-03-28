@@ -92,19 +92,18 @@ void log_blockchain_graphs() {
 }
 
 void log_statistics() {
-    int malicious_cnt = 0;
     int avg_forks = 0;
     for(Node node : *nodes) {
-        malicious_cnt += node.malicious;
         avg_forks += node.blockchain->tail_blks.size();
     }
     avg_forks /= nodes->size();
     
     ofstream file("log/stats");
     file << "-------------------------*** Network statistics ***-------------------------" << endl;
-    file << "Malicious nodes: " << malicious_cnt << "/" << num_peers << " (" << (malicious_cnt*100)/num_peers << "% ) " << endl;
+    file << "Malicious nodes: " << mal_nodes.size() << "/" << num_peers << " (" << (mal_nodes.size()*100)/num_peers << "% ) " << endl;
     file << "Average forks: " << avg_forks << endl;
     file << "Eclipsed honest nodes: " << eclipsed_nodes() << endl;
+    file << "Malicious blocks = " << malicious_block_cnt << endl;
     file.close();
 }
 

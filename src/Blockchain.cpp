@@ -8,7 +8,7 @@ Blockchain::Blockchain(Block *genesis) {
 }
 
 Blockchain::Blockchain() {
-    
+
 }
 
 void Blockchain::insert(Block *blk) {
@@ -53,6 +53,10 @@ string Blockchain::to_edge_string() const {
     for(Block *blk : blocks)
         ss << blk->id << " " << blk->prev_id() << endl;
     return ss.str();
+}
+
+bool Blockchain::empty() const {
+    return blocks.empty();
 }
 
 ostream &operator<<(ostream &os, const Blockchain *bc) {

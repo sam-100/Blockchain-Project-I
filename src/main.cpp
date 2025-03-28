@@ -18,6 +18,7 @@ vector<vector<double>> prop_delay;
 unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
 int ringmaster;
 bool ringmaster_mining = false;
+int malicious_block_cnt = 0;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
@@ -52,7 +53,6 @@ int main(int argc, char **argv) {
     }
     
     // 4. Log the result here.
-    cout << "Ringmaster Node: " << ringmaster << endl;
     log_nodes();
     log_topology();
     log_topology_m();
@@ -60,8 +60,9 @@ int main(int argc, char **argv) {
     log_blockchains();
     log_blockchain_graphs();
     log_statistics();
+    cout << "Malicious nodes: " << mal_nodes << endl;
+    cout << "Ringmaster Node: " << ringmaster << endl;
     cout << "Total " << Block::cnt << " blocks in the system." << endl;
-
     return 0;
 }
 

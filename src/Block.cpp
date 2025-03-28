@@ -34,6 +34,9 @@ Block::Block(Block* prev, int n_id, bool m) {
     txn_list.push_back(new Transaction(-1, n_id, BLOCK_REWARD));          // coinbase txn
     balance[n_id] += BLOCK_REWARD;
     timestamp = global_time;
+
+    if(malicious)
+        malicious_block_cnt++;
 }
 
 void Block::add_txn(Transaction *txn) {

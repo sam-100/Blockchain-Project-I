@@ -24,6 +24,7 @@ struct Blockchain
     bool contains_hash(string hash) const;
     int height();
     string to_edge_string() const;
+    bool empty() const;
     friend ostream &operator<<(ostream &os, const Blockchain *bc);
 };
 
