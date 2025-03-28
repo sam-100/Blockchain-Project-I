@@ -56,8 +56,8 @@ int Block::prev_id() const {
 ostream &operator<<(ostream &os, const Block *blk) {
     os << "Block " << "{ ";
     os << "id : " << blk->id << ", ";
-    os << "miner : " << blk->miner_id << ", ";
     os << "prev : " << blk->prev_id() << ", ";
+    os << "miner : " << blk->miner_id << ", ";
     os << "timestamp : " << blk->timestamp << ", ";
     os << "height : " << blk->height << ", "; 
     os << "malicious : " << btoa(blk->malicious) << " ";

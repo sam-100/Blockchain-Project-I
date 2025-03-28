@@ -111,7 +111,8 @@ void log_statistics() {
     
     ofstream file("log/stats");
     file << "-------------------------*** Network statistics ***-------------------------" << endl;
-    file << "Malicious nodes: " << mal_nodes.size() << "/" << num_peers << " (" << (mal_nodes.size()*100)/num_peers << "% ) " << endl;
+    file << "Malicious nodes: " << mal_nodes << endl;
+    file << mal_nodes.size() << "/" << num_peers << " (" << (mal_nodes.size()*100)/num_peers << "% ) " << endl;
     file << "Average forks: " << avg_forks << endl;
     file << "Eclipsed honest nodes: " << eclipsed_nodes() << endl;
     file << "Malicious blocks = " << malicious_block_cnt << "/" << STOP_PARAMETER << endl;

@@ -399,7 +399,7 @@ clock_time Node::get_latency_m(int peer, int size) const {
 
 double Node::h_fraction() const {
     if(malicious)
-        return 10*(double)mal_nodes.size()/(double)num_peers;
+        return (double)mal_nodes.size()/(double)num_peers;
     return (double)1/(double)num_peers;
 }
 
