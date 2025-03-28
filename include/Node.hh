@@ -24,46 +24,62 @@ struct Node
     std::unordered_set<int> peers_m;
     std::vector<currency> balance;
     std::unordered_set<int> visited_txns;
-    std::unordered_map<string, list<int>> wait_list;
+    std::unordered_map<string, list<int>> wait_list, wait_list_m;
     std::list<Transaction*> mem_pool;
     Blockchain *blockchain, *private_chain;
     Block *genesis;
-    unordered_set<Block*> orphan_blocks;
+    unordered_set<Block*> orphan_blocks, orphan_blocks_m;
     
     static int cnt;
 
     Node(bool malicious, Block *gen);
+
+    /* Transaction management methods */
     void add_txn(Transaction *txn);
     bool visited(Transaction *txn) const;
     bool is_valid(Transaction *txn) const;
     void broadcast(Transaction *txn) const;
     void send(Transaction *txn, int peer) const;
     
-    
-    Block *create_block();
+    /* Block management methods */
+    Block *create_block(Block *prev);
     void add_block(Block *blk);
+    void add_block_m(Block *blk);
     void broadcast(Block *blk) const;
     void send(Block *blk, int peer) const;
+    void send_m(Block *blk, int peer) const;
     void update_orphan_list();
+    void update_orphan_list_m();
     
+    /* Hash management methods */
     void broadcast(string hash) const;
+    void broadcast_m(string hash) const;
     void send(string hash, int peer) const;
+    void send_m(string hash, int peer) const;
     void request(string hash, int peer) const;
+    void request_m(string hash, int peer) const;
     
+    /* Event management methods */
     void txn_send_event();
     void txn_recv_event(Transaction *txn);
     void start_mining_event();
     void start_mining_event_m();
     void block_mined_event(Block* prev);
+    void block_mined_event_m(Block* prev);
     void block_recv_event(Block *blk);
+    void block_recv_event_m(Block *blk);
     void block_get_event(int peer, string hash);
+    void block_get_event_m(int peer, string hash);
     void hash_recv_event(string hash, int sender);
+    void hash_recv_event_m(string hash, int sender);
     void timeout_event(string hash, int sender);
+    void timeout_event_m(string hash, int sender);
     
     bool can_mine() const;
     bool is_mining() const;
-    void reset_mempool();
+    void reset_mempool(Block *blk);
     clock_time get_latency(int peer, int size) const;
+    clock_time get_latency_m(int peer, int size) const;
     double h_fraction() const;
 
     void mine_block_event_m(Block *prev);

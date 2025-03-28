@@ -47,11 +47,11 @@ struct BlockMinedEvent : public Event
     void to_string(ostream &os) const;
 };
 
-struct MaliciousBlockMinedEvent : public Event
+struct BlockMinedEvent_M : public Event
 {
     Block *prev;
 
-    MaliciousBlockMinedEvent(clock_time t, int n, Block *p);
+    BlockMinedEvent_M(clock_time t, int n, Block *p);
     void test();
     void to_string(ostream &os) const;
 };
@@ -66,12 +66,31 @@ struct BlockRecvEvent : public Event
 
 };
 
+struct BlockRecvEvent_M : public Event
+{
+    Block *blk;
+    
+    BlockRecvEvent_M(clock_time t, int n, Block *blk);
+    void test();
+    void to_string(ostream &os) const;
+};
+
 struct TimeOutEvent : public Event
 {
     string hash;
     int sender;
 
     TimeOutEvent(clock_time t, int n, string hash, int sender);
+    void test();
+    void to_string(ostream &os) const;
+};
+
+struct TimeOutEvent_M : public Event
+{
+    string hash;
+    int sender;
+
+    TimeOutEvent_M(clock_time t, int n, string hash, int sender);
     void test();
     void to_string(ostream &os) const;
 };
@@ -85,6 +104,15 @@ struct HashRecvEvent : public Event
     void test();
     void to_string(ostream &os) const;
 };
+struct HashRecvEvent_M : public Event
+{
+    string hash;
+    int sender;
+
+    HashRecvEvent_M(clock_time t, int n, string hash, int sender);
+    void test();
+    void to_string(ostream &os) const;
+};
 
 struct BlockGetReqEvent : public Event 
 {
@@ -92,6 +120,16 @@ struct BlockGetReqEvent : public Event
     int sender;
 
     BlockGetReqEvent(clock_time t, int n, string hash, int sender);
+    void test();
+    void to_string(ostream &os) const;
+};
+
+struct BlockGetReqEvent_M : public Event 
+{
+    string hash;
+    int sender;
+
+    BlockGetReqEvent_M(clock_time t, int n, string hash, int sender);
     void test();
     void to_string(ostream &os) const;
 };

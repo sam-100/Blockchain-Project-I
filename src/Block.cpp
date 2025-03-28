@@ -11,7 +11,7 @@ int Block::cnt = 0;
 
 Block::Block(Block* prev, int n_id, bool m) {
     id = cnt++;
-    cout << cnt << " blocks created." << endl;
+    cout << cnt << " blocks created." << (m ? "(malicious)" : "") << endl;
 
     if(prev == nullptr && n_id == -1)                           // genesis block
     {
@@ -37,6 +37,10 @@ Block::Block(Block* prev, int n_id, bool m) {
 
     if(malicious)
         malicious_block_cnt++;
+    
+    // for(int m : mal_nodes)
+    //     cout << nodes->at(m).mem_pool.size() << " ";
+    // cout << endl;
 }
 
 void Block::add_txn(Transaction *txn) {

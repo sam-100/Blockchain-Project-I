@@ -58,6 +58,7 @@ int main(int argc, char **argv) {
     log_topology_m();
     log_mempools();
     log_blockchains();
+    log_private_chains();
     log_blockchain_graphs();
     log_statistics();
     cout << "Malicious nodes: " << mal_nodes << endl;

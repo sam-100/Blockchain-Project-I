@@ -72,6 +72,19 @@ void BlockRecvEvent::to_string(ostream &os) const {
     os << "}";
 }
 
+/* Block Receive Event in the overlay network */
+BlockRecvEvent_M::BlockRecvEvent_M(clock_time t, int n, Block *blk) : Event(t, n) {
+    this->blk = blk;
+}
+void BlockRecvEvent_M::test() {};
+void BlockRecvEvent_M::to_string(ostream &os) const {
+    os << "$BlockRecvEvent_M " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp: " << timestamp << ", ";
+    os << "blk_id: " << blk->id << " ";
+    os << "}";
+}
+
 /* Time Out Event */
 TimeOutEvent::TimeOutEvent(clock_time t, int n, string h, int s) : Event(t, n) {
     hash = h;
@@ -80,6 +93,22 @@ TimeOutEvent::TimeOutEvent(clock_time t, int n, string h, int s) : Event(t, n) {
 void TimeOutEvent::test() {}
 void TimeOutEvent::to_string(ostream &os) const {
     os << "TimeOutEvent " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
+    // os << "hash : " << hash << ", ";
+    os << "sender : " << sender << " ";
+    os << "}";
+}
+
+/* Time Out Event in the Overlay network */
+TimeOutEvent_M::TimeOutEvent_M(clock_time t, int n, string h, int s) : Event(t, n) {
+    hash = h;
+    sender = s;
+}
+void TimeOutEvent_M::test() {}
+void TimeOutEvent_M::to_string(ostream &os) const {
+    os << "TimeOutEvent_M " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp : " << timestamp << ", ";
     os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
@@ -105,6 +134,23 @@ void HashRecvEvent::to_string(ostream &os) const {
     os << "}";
 }
 
+/* Hash Received Event in overlay network */
+HashRecvEvent_M::HashRecvEvent_M(clock_time t, int n, string h, int s) : Event(t, n) {
+    hash = h;
+    sender = s;
+}
+void HashRecvEvent_M::test() {}
+void HashRecvEvent_M::to_string(ostream &os) const {
+    os << "HashRecvEvent_M " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "blk : " << nodes->at(sender).blockchain->get_blk(hash)->id << ", ";
+    // os << "hash : " << hash << ", ";
+    os << "sender : " << sender << " ";
+    os << "}";
+}
+
+
 /* Block Get Request */
 BlockGetReqEvent::BlockGetReqEvent(clock_time t, int n, string h, int s) : Event(t, n) {
     hash = h;
@@ -121,18 +167,34 @@ void BlockGetReqEvent::to_string(ostream &os) const {
     os << "}";
 }
 
-/* Malicious Block Mined Event */
-MaliciousBlockMinedEvent::MaliciousBlockMinedEvent(clock_time t, int n, Block *p) : Event(t, n) {
+/* Block Get Request in the Overlay network*/
+BlockGetReqEvent_M::BlockGetReqEvent_M(clock_time t, int n, string h, int s) : Event(t, n) {
+    hash = h;
+    sender = s;
+}
+void BlockGetReqEvent_M::test() {}
+void BlockGetReqEvent_M::to_string(ostream &os) const {
+    os << "BlockGetReqEvent_M " << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "blk : " << nodes->at(n_id).blockchain->get_blk(hash)->id << ", ";
+    // os << "hash : " << hash << ", ";
+    os << "sender : " << sender << " ";
+    os << "}";
+}
+
+/* Malicious Block Mined in the Overlay network */
+BlockMinedEvent_M::BlockMinedEvent_M(clock_time t, int n, Block *p) : Event(t, n) {
     prev = p;
 }
-void MaliciousBlockMinedEvent::to_string(ostream &os) const {
-    os << "MaliciousBlockMinedEvent " << "{";
+void BlockMinedEvent_M::to_string(ostream &os) const {
+    os << "BlockMinedEvent_M " << "{";
     os << "n_id : " << n_id << ", ";
     os << "timestamp: " << timestamp << ", ";
     os << "prev: " << prev->id << " ";
     os << "}";
 }
-void MaliciousBlockMinedEvent::test() {}
+void BlockMinedEvent_M::test() {}
 
 /* Start Mining Event */
 StartMiningEvent::StartMiningEvent(clock_time t, int n) : Event(t, n) {}
@@ -177,12 +239,10 @@ void process_event(Event *ev) {
         StartMiningEvent *s_ev = (StartMiningEvent*)ev;
         log_event(ev);
         
-        if(node.id == ringmaster)
-        {
+        if(node.malicious)
             node.start_mining_event_m();
-            return;
-        }
-        node.start_mining_event();
+        else
+            node.start_mining_event();
         return;
     }
     if(typeid(*ev) == typeid(BlockMinedEvent))
@@ -193,6 +253,14 @@ void process_event(Event *ev) {
         node.block_mined_event(s_ev->prev);
         return;
     }
+    if(typeid(*ev) == typeid(BlockMinedEvent_M))
+    {
+        BlockMinedEvent_M *s_ev = (BlockMinedEvent_M*)ev;
+        log_event(s_ev);
+
+        node.block_mined_event_m(s_ev->prev);
+        return;
+    }
     if(typeid(*ev) == typeid(HashRecvEvent))
     {
         HashRecvEvent *s_ev = (HashRecvEvent*)ev;
@@ -201,12 +269,28 @@ void process_event(Event *ev) {
         node.hash_recv_event(s_ev->hash, s_ev->sender);
         return;
     }
+    if(typeid(*ev) == typeid(HashRecvEvent_M))
+    {
+        HashRecvEvent_M *s_ev = (HashRecvEvent_M*)ev;
+        log_event(s_ev);
+
+        node.hash_recv_event_m(s_ev->hash, s_ev->sender);
+        return;
+    }
     if(typeid(*ev) == typeid(BlockGetReqEvent))
     {
         BlockGetReqEvent *s_ev = (BlockGetReqEvent*)ev;
         log_event(s_ev);
         
         node.block_get_event(s_ev->sender, s_ev->hash);
+        return;
+    }
+    if(typeid(*ev) == typeid(BlockGetReqEvent_M))
+    {
+        BlockGetReqEvent_M *s_ev = (BlockGetReqEvent_M*)ev;
+        log_event(s_ev);
+        
+        node.block_get_event_m(s_ev->sender, s_ev->hash);
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent))
@@ -218,6 +302,15 @@ void process_event(Event *ev) {
         node.block_recv_event(s_ev->blk);
         return;
     }
+    if(typeid(*ev) == typeid(BlockRecvEvent_M))
+    {
+        BlockRecvEvent_M *s_ev = (BlockRecvEvent_M*)ev;
+        log_event(s_ev);
+
+        /* If received block is valid, add it to blockchain and forward to peer nodes */
+        node.block_recv_event_m(s_ev->blk);
+        return;
+    }
     if(typeid(*ev) == typeid(TimeOutEvent))
     {
         TimeOutEvent *s_ev = (TimeOutEvent*)ev;
@@ -226,11 +319,13 @@ void process_event(Event *ev) {
         node.timeout_event(s_ev->hash, s_ev->sender);
         return;
     }
-    if(typeid(*ev) == typeid(MaliciousBlockMinedEvent))
+    if(typeid(*ev) == typeid(TimeOutEvent_M))
     {
-        MaliciousBlockMinedEvent *s_ev = (MaliciousBlockMinedEvent*)s_ev;
+        TimeOutEvent_M *s_ev = (TimeOutEvent_M*)ev;
         log_event(s_ev);
 
-        node.mine_block_event_m(s_ev->prev);
+        node.timeout_event_m(s_ev->hash, s_ev->sender);
+        return;
     }
 }
+

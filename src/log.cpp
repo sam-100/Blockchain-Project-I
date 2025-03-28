@@ -79,6 +79,17 @@ void log_blockchains() {
     }
 }
 
+void log_private_chains() {
+    for(Node node : *nodes)
+    {
+        string filename = "log/privatechain/node-" + to_string(node.id);
+        ofstream file(filename);
+        file << "----------------------*** Blockchain ***--------------------------" << endl;
+        file << node.private_chain;
+        file.close();
+    }
+}
+
 #include <iostream>
 
 void log_blockchain_graphs() {
@@ -103,7 +114,7 @@ void log_statistics() {
     file << "Malicious nodes: " << mal_nodes.size() << "/" << num_peers << " (" << (mal_nodes.size()*100)/num_peers << "% ) " << endl;
     file << "Average forks: " << avg_forks << endl;
     file << "Eclipsed honest nodes: " << eclipsed_nodes() << endl;
-    file << "Malicious blocks = " << malicious_block_cnt << endl;
+    file << "Malicious blocks = " << malicious_block_cnt << "/" << STOP_PARAMETER << endl;
     file.close();
 }
 

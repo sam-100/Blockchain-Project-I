@@ -56,8 +56,8 @@ void Node::send(Transaction *txn, int peer) const {
 /*
     >|----------------------Block management methods---------------------|<
 */
-Block *Node::create_block() {
-    Block *blk = new Block(blockchain->get_last_blk(), id, malicious);
+Block *Node::create_block(Block *prev) {
+    Block *blk = new Block(prev, id, malicious);
     for(int i=0; i<BLOCK_SIZE; i++)
     {
         blk->add_txn(mem_pool.front());
@@ -69,8 +69,14 @@ Block *Node::create_block() {
 void Node::add_block(Block *blk) {
     blockchain->insert(blk);
     if(blk == blockchain->get_last_blk())
-        reset_mempool();
+        reset_mempool(blk);
     wait_list.erase(blk->get_hash());
+}
+
+void Node::add_block_m(Block *blk) {
+    private_chain->insert(blk);
+    reset_mempool(blk);
+    wait_list_m.erase(blk->get_hash());
 }
 
 void Node::broadcast(Block *blk) const {
@@ -81,6 +87,11 @@ void Node::broadcast(Block *blk) const {
 void Node::send(Block *blk, int peer) const {
     clock_time latency = get_latency(peer, pow(2, 20)*8);
     event_queue.push(new BlockRecvEvent(global_time + latency, peer, blk));
+}
+
+void Node::send_m(Block *blk, int peer) const {
+    clock_time latency = get_latency_m(peer, pow(2, 20)*8);
+    event_queue.push(new BlockRecvEvent_M(global_time + latency, peer, blk));
 }
 
 
@@ -94,15 +105,31 @@ void Node::broadcast(string hash) const {
         send(hash, peer);
 }
 
+void Node::broadcast_m(string hash) const {
+    for(int peer : peers_m)
+        send_m(hash, peer);
+}
+
 void Node::send(string hash, int peer) const {
     clock_time latency = get_latency(peer, 64);
     event_queue.push(new HashRecvEvent(global_time + latency, peer, hash, id));
+}
+
+void Node::send_m(string hash, int peer) const {
+    clock_time latency = get_latency_m(peer, 64);
+    event_queue.push(new HashRecvEvent_M(global_time + latency, peer, hash, id));
 }
 
 void Node::request(string hash, int sender) const {
     clock_time latency = get_latency(sender, 64);
     event_queue.push(new BlockGetReqEvent(global_time + latency, sender, hash, id));        // sending "get" request to the sender node
     event_queue.push(new TimeOutEvent(global_time + timeout_time, id, hash, sender));       // adding timeout time
+}
+
+void Node::request_m(string hash, int sender) const {
+    clock_time latency = get_latency_m(sender, 64);
+    event_queue.push(new BlockGetReqEvent_M(global_time + latency, sender, hash, id));        // sending "get" request to the sender node
+    event_queue.push(new TimeOutEvent_M(global_time + timeout_time, id, hash, sender));       // adding timeout time
 }
 
 
@@ -132,7 +159,8 @@ void Node::start_mining_event_m() {
     ringmaster_mining = true;
     clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
     Block *prev = private_chain->empty() ? blockchain->get_last_blk() : private_chain->get_last_blk();
-    event_queue.push(new BlockMinedEvent(global_time+mining_time, id, prev));
+    event_queue.push(new BlockMinedEvent_M(global_time+mining_time, id, prev));
+    cout << "Malicious node-" << id << " started mining on block " << prev->id << endl;
 }
 
 void Node::block_mined_event(Block *prev) {
@@ -142,31 +170,35 @@ void Node::block_mined_event(Block *prev) {
         return;
     }
 
-    Block *blk = create_block();
+    Block *blk = create_block(prev);
     block_recv_event(blk);
     mining = false;
-    if(id == ringmaster)
-        ringmaster_mining = false;
 }
 
-void Node::mine_block_event_m(Block *prev) {
-    // if(blockchain->get_last_blk() != prev)
-    // {
-        
-    // }
+void Node::block_mined_event_m(Block *prev) {
+    if(private_chain->get_last_blk() != prev)
+    {
+        ringmaster_mining = false;
+        return;
+    }
+
+    Block *blk = create_block(prev);
+    block_recv_event_m(blk);
+    ringmaster_mining = false;
+    cout << "Malicious node-" << id << " successfully mined block " << blk->id << endl;
 }
 
 void Node::block_recv_event(Block *blk) {    
     if(blockchain->contains(blk))
     {
-        mining = false;
+        // mining = false;
         return;
     }
 
     if(!blockchain->contains(blk->prev_blk))
     {
         orphan_blocks.insert(blk);
-        mining = false;
+        // mining = false;
         return;
     }
 
@@ -175,6 +207,24 @@ void Node::block_recv_event(Block *blk) {
     add_block(blk);
     update_orphan_list();
     broadcast(blk->get_hash());
+    return;
+}
+
+void Node::block_recv_event_m(Block *blk) {
+    if(private_chain->contains(blk) || blockchain->contains(blk))
+        return;
+
+    if(!private_chain->contains(blk->prev_blk) && !blockchain->contains(blk->prev_blk))
+    {
+        orphan_blocks_m.insert(blk);
+        return;
+    }
+
+    add_block_m(blk);
+
+    update_orphan_list_m();
+    broadcast_m(blk->get_hash());
+    return;
 }
 
 void Node::update_orphan_list() {
@@ -199,10 +249,34 @@ void Node::update_orphan_list() {
     }
 }
 
+void Node::update_orphan_list_m() {
+    while(true)
+    {
+        Block *orphan = nullptr;
+        for(Block *blk : orphan_blocks_m)
+        {
+            if(private_chain->get_last_blk() == blk->prev_blk)
+            {
+                orphan = blk;
+                break;
+            }
+        }
+        if(orphan == nullptr)
+            return;
+        
+        orphan_blocks_m.erase(orphan);
+        add_block_m(orphan);
+    }
+}
+
 void Node::block_get_event(int sender, string hash) {
     if(malicious && !nodes->at(sender).malicious)
         return;
     send(blockchain->get_blk(hash), sender);
+}
+
+void Node::block_get_event_m(int sender, string hash) {
+    send_m(private_chain->get_blk(hash), sender);
 }
 
 void Node::hash_recv_event(string hash, int sender) {
@@ -220,6 +294,23 @@ void Node::hash_recv_event(string hash, int sender) {
     // 3. Else - add the hash to pending requests and send the BlockRecv request
     request(hash, sender);
     wait_list[hash].push_back(sender);
+}
+
+void Node::hash_recv_event_m(string hash, int sender) {
+    // 1. If the corresponding block is received already, discard and return.
+    if(blockchain->contains_hash(hash) || private_chain->contains_hash(hash))
+        return;
+
+    // 2. If the time-out corresponding to the hash is running, add the node to pending_requests.
+    if(wait_list_m.find(hash) != wait_list_m.end())
+    {
+        wait_list_m[hash].push_back(sender);
+        return;
+    }
+
+    // 3. Else - add the hash to pending requests and send the BlockRecv request
+    request_m(hash, sender);
+    wait_list_m[hash].push_back(sender);
 }
 
 void Node::timeout_event(string hash, int sender) {
@@ -241,6 +332,25 @@ void Node::timeout_event(string hash, int sender) {
     request(hash, next);
 }
 
+void Node::timeout_event_m(string hash, int sender) {
+    // 1. If block is received, then erase the queue and return.
+    if(blockchain->contains_hash(hash) || private_chain->contains_hash(hash))         
+    {
+        wait_list_m.erase(hash);
+        return;
+    }
+    
+    // 2. Pop the next peer from queue, and send it the get request
+    if(wait_list_m[hash].empty())
+    {
+        wait_list_m.erase(hash);
+        return;
+    }
+    int next = wait_list_m[hash].front();
+    wait_list_m[hash].pop_front();
+    request_m(hash, next);
+}
+
 
 /*
     >|------------------------Miscelleneous methods----------------------|<
@@ -259,8 +369,8 @@ bool Node::can_mine() const {
     return mining == false;
 }
 
-void Node::reset_mempool() {
-    balance = blockchain->get_last_blk()->balance;
+void Node::reset_mempool(Block *blk) {
+    balance = blk->balance;
     list<Transaction*> buffer = mem_pool;
     mem_pool.clear();
     for(Transaction *txn : buffer)
@@ -269,17 +379,24 @@ void Node::reset_mempool() {
 }
 
 clock_time Node::get_latency(int peer, int size) const {
-    clock_time pd = (malicious && nodes->at(peer).malicious) ? 
-                        prop_delay_m[id][peer] : prop_delay[id][peer];
+    clock_time pd = prop_delay[id][peer];
     double link_speed = ((nodes->at(peer).malicious && malicious) ? 100 : 5)*pow(2, 20);
     clock_time q_delay = random_exp_float(96*pow(2, 10)/link_speed);
     return pd + size/link_speed + q_delay;
 }
 
+clock_time Node::get_latency_m(int peer, int size) const {
+    clock_time pd = prop_delay_m[id][peer];
+    double link_speed = ((nodes->at(peer).malicious && malicious) ? 100 : 5)*pow(2, 20);
+    clock_time q_delay = random_exp_float(96*pow(2, 10)/link_speed);
+    return pd + size/link_speed + q_delay;
+}
+
+
 double Node::h_fraction() const {
-    if(!malicious)
-        return (double)1/(double)num_peers;
-    return (double)mal_nodes.size()/(double)num_peers;
+    if(malicious)
+        return 10*(double)mal_nodes.size()/(double)num_peers;
+    return (double)1/(double)num_peers;
 }
 
 
