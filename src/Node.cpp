@@ -14,6 +14,7 @@ int Node::cnt = 0;
 
 Node::Node(bool malicious, Block *gen) {
     id = cnt++;
+    r_cnt = 0;
     this->malicious = malicious;
     this->mining = false;
     balance = vector<currency>(num_peers, 100);
@@ -164,7 +165,6 @@ void Node::start_mining_event_m() {
     clock_time mining_time = random_exp_float(BLOCK_INTV_TIME/h_fraction());
     Block *prev = private_chain->empty() ? blockchain->get_last_blk() : private_chain->get_last_blk();
     event_queue.push(new BlockMinedEvent_M(global_time+mining_time, id, prev));
-    // cout << "Malicious node-" << id << " started mining on block " << prev->id << endl;
 }
 
 void Node::block_mined_event(Block *prev) {
@@ -189,7 +189,6 @@ void Node::block_mined_event_m(Block *prev) {
     Block *blk = create_block(prev);
     block_recv_event_m(blk);
     ringmaster_mining = false;
-    // cout << "Malicious node-" << id << " successfully mined block " << blk->id << endl;
 }
 
 void Node::block_recv_event(Block *blk) {    
@@ -353,12 +352,48 @@ void Node::timeout_event_m(string hash, int sender) {
     int next = wait_list_m[hash].front();
     wait_list_m[hash].pop_front();
     request_m(hash, next);
+    return;
+}
+
+void Node::release_private_chain_event(int r_cnt) {
+    if(this->r_cnt == r_cnt)
+        return;
+    this->r_cnt = r_cnt;
+    
+    // 1. Forward the message over the overlay network 
+    for(int peer : peers_m)
+    {
+        clock_time latency = get_latency_m(peer, 64);
+        event_queue.push(new ReleasePrivateChainEvent(peer, global_time+latency, this->r_cnt));
+    }
+    // 2. For each block blk in the private_chain
+        // 2.1. add blk to honest chain
+    for(Block *blk : private_chain->blocks)
+        block_recv_event(blk);
+        // 2.2. broadcast blk hash on real network
+    for(Block *blk : private_chain->blocks)
+        broadcast(blk->get_hash());
+
+    // 3. clear the private chain
+    private_chain->clear();
 }
 
 
 /*
     >|------------------------Miscelleneous methods----------------------|<
 */
+bool Node::alert() const {
+    if(id != ringmaster)
+        return false;
+    if(private_chain->empty())
+        return false;
+    if(blockchain->height() == private_chain->height())
+        return true;
+    if(blockchain->height() == private_chain->height()-1)
+        return true;
+    return false;
+}
+
 bool Node::is_mining() const {
     if(malicious)
         return ringmaster_mining;
@@ -402,8 +437,6 @@ double Node::h_fraction() const {
         return (double)mal_nodes.size()/(double)num_peers;
     return (double)1/(double)num_peers;
 }
-
-
 
 
 /* Network control and other functions */

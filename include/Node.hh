@@ -19,13 +19,15 @@ struct Node
     int id;
     bool malicious;
     bool mining;
+    int r_cnt;
     clock_time p_delay;
-    std::unordered_set<int> peers;
-    std::unordered_set<int> peers_m;
-    std::vector<currency> balance;
-    std::unordered_set<int> visited_txns;
-    std::unordered_map<string, list<int>> wait_list, wait_list_m;
-    std::list<Transaction*> mem_pool;
+    unordered_set<int> visited_msg;
+    unordered_set<int> peers;
+    unordered_set<int> peers_m;
+    vector<currency> balance;
+    unordered_set<int> visited_txns;
+    unordered_map<string, list<int>> wait_list, wait_list_m;
+    list<Transaction*> mem_pool;
     Blockchain *blockchain, *private_chain;
     Block *genesis;
     unordered_set<Block*> orphan_blocks, orphan_blocks_m;
@@ -74,6 +76,7 @@ struct Node
     void hash_recv_event_m(string hash, int sender);
     void timeout_event(string hash, int sender);
     void timeout_event_m(string hash, int sender);
+    void release_private_chain_event(int msg_no);
     
     bool can_mine() const;
     bool is_mining() const;
@@ -81,6 +84,7 @@ struct Node
     clock_time get_latency(int peer, int size) const;
     clock_time get_latency_m(int peer, int size) const;
     double h_fraction() const;
+    bool alert() const;
 
     void mine_block_event_m(Block *prev);
 

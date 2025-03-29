@@ -19,6 +19,12 @@ void Blockchain::insert(Block *blk) {
     tail_blks.insert(blk);
 }
 
+void Blockchain::clear() {
+    blocks.clear();
+    tail_blks.clear();
+    visited_hash.clear();
+}
+
 Block *Blockchain::get_blk(string hash) {
     return visited_hash[hash];
 }
@@ -45,6 +51,8 @@ bool Blockchain::contains_hash(string hash) const {
 }
 
 int Blockchain::height() {
+    if(empty())
+        return 0;
     return get_last_blk()->height;
 }
 

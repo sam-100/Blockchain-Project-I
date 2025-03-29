@@ -141,7 +141,16 @@ struct StartMiningEvent : public Event
     void to_string(ostream &os) const;
 };
 
+struct ReleasePrivateChainEvent : public Event
+{
+    int msg_no;
 
+    static int cnt;
+
+    ReleasePrivateChainEvent(int n, clock_time t, int msg_no);
+    void test();
+    void to_string(ostream &os) const;
+};
 
 
 void process_event(Event*);

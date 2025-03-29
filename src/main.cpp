@@ -19,6 +19,7 @@ unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
 int ringmaster;
 bool ringmaster_mining = false;
 int malicious_block_cnt = 0;
+int r_cnt = 0;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments

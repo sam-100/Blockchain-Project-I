@@ -39,6 +39,6 @@ extern vector<vector<double>> prop_delay;
 extern unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
 extern bool ringmaster_mining;
 extern int ringmaster, malicious_block_cnt;
-
+extern int r_cnt;
 
 #endif

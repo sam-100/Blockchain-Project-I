@@ -206,6 +206,19 @@ void StartMiningEvent::to_string(ostream &os) const {
     os << "}";
 }
 
+/* Release Private Chain Event */
+int ReleasePrivateChainEvent::cnt = 0;
+ReleasePrivateChainEvent::ReleasePrivateChainEvent(int n_id, clock_time ts, int msg_no) : Event(n_id, ts) {
+    msg_no = cnt;
+}
+void ReleasePrivateChainEvent::test() {};
+void ReleasePrivateChainEvent::to_string(ostream &os) const {
+    os << "ReleasePrivateChainEvent" << "{";
+    os << "n_id : " << n_id << ", ";
+    os << "timestamp : " << timestamp << ", ";
+    os << "seq_no : " << msg_no << " ";
+    os << "}";
+}
 
 /* Process event function */
 
@@ -298,8 +311,9 @@ void process_event(Event *ev) {
         BlockRecvEvent *s_ev = (BlockRecvEvent*)ev;
         log_event(s_ev);
 
-        /* If received block is valid, add it to blockchain and forward to peer nodes */
         node.block_recv_event(s_ev->blk);
+        // if(node.id == ringmaster && node.alert())
+        //     event_queue.push(new ReleasePrivateChainEvent(node.id, global_time, r_cnt++));
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent_M))
@@ -309,6 +323,8 @@ void process_event(Event *ev) {
 
         /* If received block is valid, add it to blockchain and forward to peer nodes */
         node.block_recv_event_m(s_ev->blk);
+        // if(node.id == ringmaster && node.alert())
+        //     event_queue.push(new ReleasePrivateChainEvent(node.id, global_time, r_cnt++));
         return;
     }
     if(typeid(*ev) == typeid(TimeOutEvent))
@@ -325,6 +341,14 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         node.timeout_event_m(s_ev->hash, s_ev->sender);
+        return;
+    }
+    if(typeid(*ev) == typeid(ReleasePrivateChainEvent))
+    {
+        ReleasePrivateChainEvent *s_ev = (ReleasePrivateChainEvent*)ev;
+        log_event(s_ev);
+
+        node.release_private_chain_event(s_ev->msg_no);
         return;
     }
 }

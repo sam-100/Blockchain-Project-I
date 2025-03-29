@@ -18,6 +18,7 @@ struct Blockchain
     Blockchain();
     Blockchain(Block *genesis);
     void insert(Block *blk);
+    void clear();
     Block *get_last_blk();
     Block *get_blk(string hash);
     bool contains(Block *blk) const;

@@ -16,7 +16,7 @@ Block::Block(Block* prev, int n_id, bool m) {
     if(prev == nullptr && n_id == -1)                           // genesis block
     {
         miner_id = -1;
-        height = 0;
+        height = 1;
         prev_blk = nullptr;
         prev_hash = "null";
         malicious = m;
