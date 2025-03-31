@@ -82,6 +82,8 @@ void log_blockchains() {
 void log_private_chains() {
     for(Node node : *nodes)
     {
+        if(!node.malicious)
+            continue;
         string filename = "log/privatechain/node-" + to_string(node.id);
         ofstream file(filename);
         file << "----------------------*** Blockchain ***--------------------------" << endl;

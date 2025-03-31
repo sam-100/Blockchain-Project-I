@@ -24,7 +24,7 @@ Block::Block(Block* prev, int n_id, bool m) {
         timestamp = global_time;
         return;
     }
-    
+
     miner_id = n_id;
     height = prev->height + 1;
     prev_blk = prev;

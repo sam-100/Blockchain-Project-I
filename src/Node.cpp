@@ -14,7 +14,6 @@ int Node::cnt = 0;
 
 Node::Node(bool malicious, Block *gen) {
     id = cnt++;
-    r_cnt = 0;
     this->malicious = malicious;
     this->mining = false;
     balance = vector<currency>(num_peers, 100);
@@ -355,16 +354,16 @@ void Node::timeout_event_m(string hash, int sender) {
     return;
 }
 
-void Node::release_private_chain_event(int r_cnt) {
-    if(this->r_cnt == r_cnt)
+void Node::release_private_chain_event(int cmd_no) {
+    if(visited_cmds.find(cmd_no) != visited_cmds.end())
         return;
-    this->r_cnt = r_cnt;
+    visited_cmds.insert(cmd_no);
     
     // 1. Forward the message over the overlay network 
     for(int peer : peers_m)
     {
         clock_time latency = get_latency_m(peer, 64);
-        event_queue.push(new ReleasePrivateChainEvent(peer, global_time+latency, this->r_cnt));
+        event_queue.push(new ReleasePrivateChainEvent(global_time+latency, peer, cmd_no));
     }
     // 2. For each block blk in the private_chain
         // 2.1. add blk to honest chain

@@ -19,7 +19,7 @@ unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
 int ringmaster;
 bool ringmaster_mining = false;
 int malicious_block_cnt = 0;
-int r_cnt = 0;
+int release_command_cnt = 0;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
@@ -39,7 +39,8 @@ int main(int argc, char **argv) {
     create_topology_m();
     ringmaster = mal_nodes[random_int(0, mal_nodes.size())];
     for(int i=0; i<nodes->size(); i++)
-    event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
+        event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
+    event_queue.push(new EndOfSimulationEvent());
     system("find log/* -type f -delete");   // clearing logs from previous execution 
     
     // 3. While Queue is not empty, do:
@@ -52,6 +53,7 @@ int main(int argc, char **argv) {
         
         process_event(ev);
     }
+    
     
     // 4. Log the result here.
     log_nodes();

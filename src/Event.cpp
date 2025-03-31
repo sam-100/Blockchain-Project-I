@@ -14,6 +14,10 @@ void Event::to_string(ostream &os) const {
     os << this << endl;
 }
 bool compare_events::operator()(const Event *ev1, const Event *ev2) {
+    if(ev1->timestamp == -1)
+        return true;
+    if(ev2->timestamp == -1)
+        return false;
     return ev1->timestamp > ev2->timestamp;
 }
 ostream &operator<<(ostream &os, const Event *ev) {
@@ -208,8 +212,8 @@ void StartMiningEvent::to_string(ostream &os) const {
 
 /* Release Private Chain Event */
 int ReleasePrivateChainEvent::cnt = 0;
-ReleasePrivateChainEvent::ReleasePrivateChainEvent(int n_id, clock_time ts, int msg_no) : Event(n_id, ts) {
-    msg_no = cnt;
+ReleasePrivateChainEvent::ReleasePrivateChainEvent(clock_time ts, int n, int msg_no) : Event(ts, n) {
+    this->msg_no = msg_no;
 }
 void ReleasePrivateChainEvent::test() {};
 void ReleasePrivateChainEvent::to_string(ostream &os) const {
@@ -219,6 +223,14 @@ void ReleasePrivateChainEvent::to_string(ostream &os) const {
     os << "seq_no : " << msg_no << " ";
     os << "}";
 }
+
+/* End of Simulation Event */
+EndOfSimulationEvent::EndOfSimulationEvent() : Event(-1, 0) {}
+void EndOfSimulationEvent::test() {};
+void EndOfSimulationEvent::to_string(ostream &os) const {
+    os << "EndOfSimulationEvent" << "{}";
+}
+
 
 /* Process event function */
 
@@ -312,8 +324,12 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         node.block_recv_event(s_ev->blk);
-        // if(node.id == ringmaster && node.alert())
-        //     event_queue.push(new ReleasePrivateChainEvent(node.id, global_time, r_cnt++));
+        if(node.id == ringmaster && node.alert())
+        {
+            event_queue.push(new ReleasePrivateChainEvent(global_time, node.id, release_command_cnt++));
+            
+            getchar();
+        }
         return;
     }
     if(typeid(*ev) == typeid(BlockRecvEvent_M))
@@ -321,10 +337,7 @@ void process_event(Event *ev) {
         BlockRecvEvent_M *s_ev = (BlockRecvEvent_M*)ev;
         log_event(s_ev);
 
-        /* If received block is valid, add it to blockchain and forward to peer nodes */
         node.block_recv_event_m(s_ev->blk);
-        // if(node.id == ringmaster && node.alert())
-        //     event_queue.push(new ReleasePrivateChainEvent(node.id, global_time, r_cnt++));
         return;
     }
     if(typeid(*ev) == typeid(TimeOutEvent))
@@ -349,6 +362,14 @@ void process_event(Event *ev) {
         log_event(s_ev);
 
         node.release_private_chain_event(s_ev->msg_no);
+        return;
+    }
+    if(typeid(*ev) == typeid(EndOfSimulationEvent))
+    {
+        EndOfSimulationEvent *s_ev = (EndOfSimulationEvent*)ev;
+        log_event(s_ev);
+
+        event_queue.push(new ReleasePrivateChainEvent(global_time, ringmaster, release_command_cnt++));
         return;
     }
 }

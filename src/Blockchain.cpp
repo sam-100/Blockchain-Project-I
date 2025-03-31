@@ -67,6 +67,23 @@ bool Blockchain::empty() const {
     return blocks.empty();
 }
 
+string Blockchain::to_list() {
+    string str;
+    unordered_set<Block*> visited;
+    for(Block *blk : tail_blks)
+    {
+        str += '[';
+        while(blk && visited.find(blk) == visited.end() && blocks.find(blk) != blocks.end())
+        {
+            str += to_string(blk->id) + " -> ";
+            visited.insert(blk);
+            blk = blk->prev_blk;
+        }
+        str += "] ";
+    }
+    return str;
+}
+
 ostream &operator<<(ostream &os, const Blockchain *bc) {
     for(Block *tail : bc->tail_blks)
     {

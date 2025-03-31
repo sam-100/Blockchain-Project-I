@@ -19,7 +19,7 @@ struct Node
     int id;
     bool malicious;
     bool mining;
-    int r_cnt;
+    unordered_set<int> visited_cmds;
     clock_time p_delay;
     unordered_set<int> visited_msg;
     unordered_set<int> peers;
