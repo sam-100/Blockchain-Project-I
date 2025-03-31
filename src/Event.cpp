@@ -225,17 +225,18 @@ void ReleasePrivateChainEvent::to_string(ostream &os) const {
 }
 
 /* End of Simulation Event */
-EndOfSimulationEvent::EndOfSimulationEvent() : Event(-1, 0) {}
+EndOfSimulationEvent::EndOfSimulationEvent(int n_id) : Event(-1, n_id) {}
 void EndOfSimulationEvent::test() {};
 void EndOfSimulationEvent::to_string(ostream &os) const {
-    os << "EndOfSimulationEvent" << "{}";
+    os << "EndOfSimulationEvent" << "{time = " << global_time << "}";
 }
 
 
 /* Process event function */
 
 void process_event(Event *ev) {
-    global_time = ev->timestamp;
+    if(typeid(*ev) != typeid(EndOfSimulationEvent))
+        global_time = ev->timestamp;
     Node &node = nodes->at(ev->n_id);
     if(typeid(*ev) == typeid(TxnSendEvent))
     {

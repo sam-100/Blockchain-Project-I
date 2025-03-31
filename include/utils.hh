@@ -7,10 +7,13 @@
 #include <ostream>
 #include <string>
 
+using namespace std;
+
 int random_int(int start, int end);
 float random_float(float start, float end);
 float random_exp_float(float mean);
 std::string btoa(bool val);
+void plot_graph(string filename, string outputfilename);
 
 template <typename T>
 std::ostream &operator<<(std::ostream &out, const std::vector<T> &arr) {

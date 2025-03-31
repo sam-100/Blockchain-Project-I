@@ -28,6 +28,10 @@ struct Blockchain
     bool empty() const;
     friend ostream &operator<<(ostream &os, const Blockchain *bc);
     string to_list();
+    string graph();
+    int size() const;
+    int mal_cnt() const;
+    int mal_cnt_at_longest();
 };
 
 #endif

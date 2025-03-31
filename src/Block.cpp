@@ -11,7 +11,6 @@ int Block::cnt = 0;
 
 Block::Block(Block* prev, int n_id, bool m) {
     id = cnt++;
-    cout << cnt << " blocks created." << (m ? "(malicious)" : "") << endl;
 
     if(prev == nullptr && n_id == -1)                           // genesis block
     {

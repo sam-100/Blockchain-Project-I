@@ -75,7 +75,7 @@ void Node::add_block(Block *blk) {
 
 void Node::add_block_m(Block *blk) {
     private_chain->insert(blk);
-    reset_mempool(blk);
+    // reset_mempool(blk);
     wait_list_m.erase(blk->get_hash());
 }
 
@@ -366,12 +366,16 @@ void Node::release_private_chain_event(int cmd_no) {
         event_queue.push(new ReleasePrivateChainEvent(global_time+latency, peer, cmd_no));
     }
     // 2. For each block blk in the private_chain
-        // 2.1. add blk to honest chain
+    // 2.1. add blk to honest chain
     for(Block *blk : private_chain->blocks)
         block_recv_event(blk);
-        // 2.2. broadcast blk hash on real network
-    for(Block *blk : private_chain->blocks)
-        broadcast(blk->get_hash());
+    // 2.2. broadcast blk hash on real network
+    Block *blk = private_chain->get_last_blk();    
+    while(blk)
+    {
+        broadcast(blk);
+        blk = blk->prev_blk;
+    }
 
     // 3. clear the private chain
     private_chain->clear();

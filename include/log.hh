@@ -11,9 +11,12 @@ void log_blockchains();
 void log_private_chains();
 void log_blockchain_graphs();
 void log_statistics();
+void log_network_graph();
 
 void log(const char* file, const char* msg);
 void log_event(Event *ev);
+void log_orphan_lists();
+
 
 vector<int> eclipsed_nodes();
 #endif

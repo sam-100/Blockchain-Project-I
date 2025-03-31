@@ -84,6 +84,31 @@ string Blockchain::to_list() {
     return str;
 }
 
+string Blockchain::graph() {
+    stringstream ss;
+    unordered_set<Block*> visited;
+    for(Block *blk : tail_blks)
+    {
+        ss << blk->id;
+        while(blk->prev_blk && visited.find(blk) == visited.end())
+        {
+            visited.insert(blk);
+            ss << " -> " << blk->prev_id();
+            blk = blk->prev_blk;
+        }
+        ss << ";" << endl;
+    }
+    for(Block *blk : blocks)
+    {
+        if(blk->malicious)
+            ss << blk->id << "[color=red, style=filled]" << endl;
+        else
+            ss << blk->id << "[color=green, style=filled]" << endl;
+    }
+    
+    return ss.str();
+}
+
 ostream &operator<<(ostream &os, const Blockchain *bc) {
     for(Block *tail : bc->tail_blks)
     {
@@ -96,4 +121,27 @@ ostream &operator<<(ostream &os, const Blockchain *bc) {
         os << endl;
     }
     return os;
+}
+
+int Blockchain::size() const {
+    return blocks.size();
+}
+
+int Blockchain::mal_cnt() const {
+    int cnt = 0;
+    for(Block *blk : blocks)
+        cnt += blk->malicious;
+    return cnt;
+}
+
+int Blockchain::mal_cnt_at_longest() {
+    Block *blk = get_last_blk();
+    int cnt = 0;
+    while(blk)
+    {
+        cnt += blk->malicious;
+        blk = blk->prev_blk;
+    }
+    cout << "mal_cnt_at_longest = " << cnt << endl;
+    return cnt;
 }

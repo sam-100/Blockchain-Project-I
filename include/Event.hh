@@ -153,7 +153,7 @@ struct ReleasePrivateChainEvent : public Event
 
 struct EndOfSimulationEvent : public Event 
 {
-    EndOfSimulationEvent();
+    EndOfSimulationEvent(int n_id);
     void test();
     void to_string(ostream &os) const;
 };

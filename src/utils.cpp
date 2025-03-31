@@ -24,3 +24,8 @@ float random_exp_float(float mean) {
 std::string btoa(bool val) {
     return (val == true) ? "True" : "False";
 }
+
+void plot_graph(string filename, string outputfilename) {
+    string cmd = "dot -Tpng -o " + outputfilename + " " + filename;
+    system(cmd.c_str());
+}

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <Transaction.hh>
 #include "Event.hh"
+#include "Declarations.hh"
 
 using namespace std;
 
@@ -99,10 +100,42 @@ void log_blockchain_graphs() {
     {
         string filename = "log/blockchain-graph/node-" + to_string(node.id);
         ofstream file(filename);
-        file << node.blockchain->to_edge_string();
+
+        file << "digraph G {" << endl;
+        file << node.blockchain->graph();
+        file << "}";
         file.close();
     }
 }
+
+void log_orphan_lists() {
+    for(Node node : *nodes)
+    {
+        string filename = "log/orphan-blocks/node-" + to_string(node.id);
+        ofstream file(filename);
+
+        for(Block *blk : node.orphan_blocks)
+            file << blk << endl;
+        
+        file.close();
+    }
+}
+
+void log_network_graph() {
+    ofstream file("log/network-graph.gv");
+    file << "graph G {" << endl;
+    for(Node &node : *nodes)
+        for(int peer : node.peers)
+            file << node.id << " -- " << peer << endl;
+    for(Node &node : *nodes) 
+        if(node.malicious)
+            file << node.id << " [color=red, style=filled]" << endl;
+        else
+            file << node.id << " [color=green, style=filled]" << endl;
+    file << "}";
+    file.close();
+}
+
 
 void log_statistics() {
     int avg_forks = 0;
@@ -118,6 +151,12 @@ void log_statistics() {
     file << "Average forks: " << avg_forks << endl;
     file << "Eclipsed honest nodes: " << eclipsed_nodes() << endl;
     file << "Malicious blocks = " << malicious_block_cnt << "/" << STOP_PARAMETER << endl;
+
+    Node &r_node = nodes->at(ringmaster);
+    file << "Ringmaster = " << ringmaster << endl;
+    file << "(malicious)/(total blocks) ratio = " << (double)r_node.blockchain->mal_cnt_at_longest()/(double)r_node.blockchain->mal_cnt() << endl;
+    file << "(malicious blocks at ringmaster)/(total malicious blocks in simulation) ratio = " << (double)r_node.blockchain->mal_cnt_at_longest()/(double)malicious_block_cnt << endl;
+
     file.close();
 }
 

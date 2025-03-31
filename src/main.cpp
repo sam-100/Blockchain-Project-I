@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     ringmaster = mal_nodes[random_int(0, mal_nodes.size())];
     for(int i=0; i<nodes->size(); i++)
         event_queue.push(new TxnSendEvent(global_time + random_exp_float(avg_send), i));
-    event_queue.push(new EndOfSimulationEvent());
+    event_queue.push(new EndOfSimulationEvent(ringmaster));
     system("find log/* -type f -delete");   // clearing logs from previous execution 
     
     // 3. While Queue is not empty, do:
@@ -59,16 +59,22 @@ int main(int argc, char **argv) {
     
     // 4. Log the result here.
     log_nodes();
+    log_network_graph();
     log_topology();
     log_topology_m();
     log_mempools();
     log_blockchains();
     log_private_chains();
     log_blockchain_graphs();
+    log_orphan_lists();
     log_statistics();
     cout << "Malicious nodes: " << mal_nodes << endl;
     cout << "Ringmaster Node: " << ringmaster << endl;
     cout << "Total " << Block::cnt << " blocks in the system." << endl;
+
+    plot_graph("log/network-graph.gv", "network.png");
+    plot_graph("log/blockchain-graph/node-"+to_string(ringmaster), "./ringmaster.png");
+    
     return 0;
 }
 
