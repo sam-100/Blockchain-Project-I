@@ -327,8 +327,6 @@ void process_event(Event *ev) {
         if(node.id == ringmaster && node.alert())
         {
             event_queue.push(new ReleasePrivateChainEvent(global_time, node.id, release_command_cnt++));
-            
-            getchar();
         }
         return;
     }

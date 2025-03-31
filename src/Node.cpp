@@ -272,7 +272,7 @@ void Node::update_orphan_list_m() {
 }
 
 void Node::block_get_event(int sender, string hash) {
-    if(malicious && !nodes->at(sender).malicious)
+    if(malicious && !nodes->at(sender).malicious && eclipse_attack)
         return;
     send(blockchain->get_blk(hash), sender);
 }
@@ -490,7 +490,6 @@ void create_topology_m() {
     for(Node node : *nodes)
         if(node.malicious)
             mal_nodes.push_back(node.id);
-    cout << "malicious nodes: " << mal_nodes << endl;
 
     while(!is_connected_m())
     {

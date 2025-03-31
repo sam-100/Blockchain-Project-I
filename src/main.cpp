@@ -20,18 +20,20 @@ int ringmaster;
 bool ringmaster_mining = false;
 int malicious_block_cnt = 0;
 int release_command_cnt = 0;
+bool eclipse_attack;
 
 int main(int argc, char **argv) {
     // 1. Process command line arguments
-    if(argc != 5)
+    if(argc != 6)
     {
-        cout << "Usage: " << argv[0] << " " << "<num_of_peers> <malicious> <avg_send_time> <timeout_time>" << endl;
+        cout << "Usage: " << argv[0] << " " << "<num_of_peers> <malicious> <avg_send_time> <timeout_time> <eclipse>" << endl;
         return 1;
     }
     num_peers = atoi(argv[1]);
     malicious = atoi(argv[2]);
     avg_send = atof(argv[3]);
     timeout_time = atof(argv[4]);
+    eclipse_attack = atoi(argv[5]);
     
     // 2. Create and initialize objects 
     prop_delay.resize(num_peers, vector<clock_time>(num_peers, 0));

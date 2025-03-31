@@ -37,7 +37,7 @@ extern clock_time avg_send, global_time, timeout_time;
 extern int num_peers;
 extern vector<vector<double>> prop_delay;
 extern unordered_map<int, unordered_map<int, clock_time>> prop_delay_m;
-extern bool ringmaster_mining;
+extern bool ringmaster_mining, eclipse_attack;
 extern int ringmaster, malicious_block_cnt;
 extern int release_command_cnt;
 #endif
