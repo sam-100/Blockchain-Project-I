@@ -124,9 +124,10 @@ void log_orphan_lists() {
 void log_network_graph() {
     ofstream file("log/network-graph.gv");
     file << "graph G {" << endl;
-    for(Node &node : *nodes)
-        for(int peer : node.peers)
-            file << node.id << " -- " << peer << endl;
+
+    for(pair<int, int> edge : get_edge_set()) {
+        file << edge.first << " -- " << edge.second << ";" << endl;
+    }
     for(Node &node : *nodes) 
         if(node.malicious)
             file << node.id << " [color=red, style=filled]" << endl;

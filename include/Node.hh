@@ -99,6 +99,7 @@ void print_network();
 void connect_nodes(int node_this, int node_that);
 void visit_dfs(int curr, vector<bool> &visited);
 void print_edges();
+unordered_set<pair<int, int>, PairHash> get_edge_set();
 
 void create_topology_m();
 int select_peer_m(Node &node);

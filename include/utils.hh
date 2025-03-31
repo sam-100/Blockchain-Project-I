@@ -15,6 +15,12 @@ float random_exp_float(float mean);
 std::string btoa(bool val);
 void plot_graph(string filename, string outputfilename);
 
+
+struct PairHash {
+    size_t operator()(const pair<int, int> &p) const;
+};
+
+
 template <typename T>
 std::ostream &operator<<(std::ostream &out, const std::vector<T> &arr) {
     out << "[ ";

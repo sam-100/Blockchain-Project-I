@@ -27,6 +27,7 @@ struct Transaction;
 struct compare_events;
 struct Block;
 struct Blockchain;
+struct PairHash;
 
 
 extern priority_queue<Event*, vector<Event*>, compare_events> event_queue;

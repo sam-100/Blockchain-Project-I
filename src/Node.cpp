@@ -601,6 +601,20 @@ ostream &operator<<(ostream &out, const Node &node) {
     return out;
 }
 
+unordered_set<pair<int, int>, PairHash> get_edge_set() {
+    unordered_set<pair<int, int>, PairHash> edge_set;
+    for(Node &node : *nodes)
+        for(int peer : node.peers)
+        {
+            if(edge_set.find(pair<int, int>(node.id, peer)) != edge_set.end())
+                continue;
+            if(edge_set.find(pair<int, int>(peer, node.id)) != edge_set.end())
+                continue;
+            edge_set.insert({node.id, peer});            
+        }
+    return edge_set;
+}
+
 
 
 // 1. update and validate mem-pool

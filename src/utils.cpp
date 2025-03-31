@@ -29,3 +29,7 @@ void plot_graph(string filename, string outputfilename) {
     string cmd = "dot -Tpng -o " + outputfilename + " " + filename;
     system(cmd.c_str());
 }
+
+size_t PairHash::operator()(const pair<int, int> &p) const {
+    return (p.first ^ p.second << 1);
+}
