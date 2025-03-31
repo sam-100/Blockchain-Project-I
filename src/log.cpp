@@ -137,6 +137,18 @@ void log_network_graph() {
     file.close();
 }
 
+void log_network_graph_m() {
+    ofstream file("log/network-graph_m.gv");
+    file << "graph G {" << endl;
+
+    for(pair<int, int> edge : get_edge_set_m()) {
+        file << edge.first << " -- " << edge.second << ";" << endl;
+    }
+    for(int m : mal_nodes) 
+        file << m << " [color=red, style=filled]" << endl;
+    file << "}";
+    file.close();
+}
 
 void log_statistics() {
     int avg_forks = 0;

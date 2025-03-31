@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
     // 4. Log the result here.
     log_nodes();
     log_network_graph();
+    log_network_graph_m();
     log_topology();
     log_topology_m();
     log_mempools();
@@ -73,7 +74,8 @@ int main(int argc, char **argv) {
     cout << "Total " << Block::cnt << " blocks in the system." << endl;
 
     plot_graph("log/network-graph.gv", "network.png");
-    plot_graph("log/blockchain-graph/node-"+to_string(ringmaster), "./ringmaster.png");
+    plot_graph("log/network-graph_m.gv", "network_m.png");
+    plot_graph("log/blockchain-graph/node-"+to_string(ringmaster), "ringmaster.png");
     
     return 0;
 }

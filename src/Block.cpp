@@ -11,7 +11,8 @@ int Block::cnt = 0;
 
 Block::Block(Block* prev, int n_id, bool m) {
     id = cnt++;
-
+    cout << cnt*100/STOP_PARAMETER << " ";
+    cout.flush();
     if(prev == nullptr && n_id == -1)                           // genesis block
     {
         miner_id = -1;

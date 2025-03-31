@@ -456,36 +456,32 @@ void create_topology(int node_cnt) {
     {
         clear_network();
         
-        for(Node node : *nodes)
+        for(Node &node : *nodes)
         {
-            if(node.peers.size() >= MIN_DEGREE)
-                continue;
-            int peer = select_peer(node);
-            connect_nodes(node.id, peer);
+            while(node.peers.size() < MIN_DEGREE)
+            {
+                int peer = select_peer(node);
+                connect_nodes(node.id, peer);
+            }
         }
     }
 }
 
 int select_peer(Node &node) {
-    int peer;
-    bool degree_max, is_self;
+    int peer, degree;
     do {
         peer = random_int(0, nodes->size());
-        degree_max = nodes->at(peer).peers.size() >= MAX_DEGREE;
-        is_self = peer == node.id;
-    } while(degree_max || is_self);
+        degree = nodes->at(peer).peers.size();
+    } while(degree >= MAX_DEGREE || node.id == peer);
     return peer;
 }
 
 int select_peer_m(Node &node) {
-    int peer;
-    bool degree_max, is_self, is_malicious;
+    int peer, degree;
     do {
         peer = random_int(0, nodes->size());
-        degree_max = nodes->at(peer).peers_m.size() >= MAX_DEGREE;
-        is_self = peer == node.id;
-        is_malicious = nodes->at(peer).malicious;
-    } while(degree_max || is_self || !is_malicious);
+        degree = nodes->at(peer).peers_m.size();
+    } while(degree >= MAX_DEGREE || node.id == peer || !nodes->at(peer).malicious);
     return peer;
 }
 
@@ -499,15 +495,16 @@ void create_topology_m() {
     {
         clear_network_m();
         
-        for(Node node : *nodes)
+        for(Node &node : *nodes)
         {
-            if(node.malicious == false)
+            if(!node.malicious)
                 continue;
-            if(node.peers_m.size() >= MIN_DEGREE)
-                continue;
-
-            int peer = select_peer_m(node);
-            connect_nodes_m(node.id, peer);
+            
+            while(node.peers_m.size() < max(MIN_DEGREE, 1))
+            {
+                int peer = select_peer_m(node);
+                connect_nodes_m(node.id, peer);
+            }
         }
     }
 }
@@ -612,6 +609,24 @@ unordered_set<pair<int, int>, PairHash> get_edge_set() {
                 continue;
             edge_set.insert({node.id, peer});            
         }
+    return edge_set;
+}
+
+unordered_set<pair<int, int>, PairHash> get_edge_set_m() {
+    unordered_set<pair<int, int>, PairHash> edge_set;
+    for(Node &node : *nodes)
+    {
+        if(node.malicious == false)
+            continue;
+        for(int peer : node.peers_m)
+        {
+            if(edge_set.find(pair<int, int>(node.id, peer)) != edge_set.end())
+                continue;
+            if(edge_set.find(pair<int, int>(peer, node.id)) != edge_set.end())
+                continue;
+            edge_set.insert({node.id, peer});
+        }
+    }
     return edge_set;
 }
 
